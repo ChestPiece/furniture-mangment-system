@@ -2,6 +2,10 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 export default function NewCustomerPage() {
   const router = useRouter()
@@ -42,51 +46,47 @@ export default function NewCustomerPage() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Add New Customer</h1>
+      <h1 className="text-2xl font-bold mb-6 tracking-tight">Add New Customer</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 shadow rounded-lg">
+      <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="bg-red-50 p-4 rounded-md">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="bg-destructive/15 p-4 rounded-md text-destructive text-sm font-medium">
+            {error}
           </div>
         )}
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Customer Name</label>
-          <input
-            type="text"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border px-3"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-          <input
-            type="text"
-            required
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-10 border px-3"
-          />
-        </div>
+        <Card>
+          <CardContent className="pt-6 grid gap-6">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Customer Name</Label>
+              <Input
+                id="name"
+                type="text"
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input
+                id="phone"
+                type="text"
+                required
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div className="pt-5 flex justify-end">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
+        <div className="flex justify-end space-x-4">
+          <Button variant="outline" type="button" onClick={() => router.back()}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
+          </Button>
+          <Button type="submit" disabled={loading}>
             {loading ? 'Adding...' : 'Add Customer'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

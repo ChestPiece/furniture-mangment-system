@@ -1,6 +1,18 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 
 export default function ReportsPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -34,149 +46,146 @@ export default function ReportsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+      <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Reports</h1>
 
       {/* Daily Sales Section */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-lg font-medium text-gray-900">Daily Sales</h2>
-          <input
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle>Daily Sales</CardTitle>
+          <Input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm h-9 border px-3"
+            className="w-[180px]"
           />
-        </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="py-4 text-center text-muted-foreground">Loading stats...</div>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-md border bg-muted/50">
+                  <span className="block text-sm font-medium text-muted-foreground">
+                    Total Orders
+                  </span>
+                  <span className="block text-2xl font-bold text-foreground">
+                    {dailyStats?.totalOrders || 0}
+                  </span>
+                </div>
+                <div className="p-4 rounded-md border bg-muted/50">
+                  <span className="block text-sm font-medium text-muted-foreground">
+                    Total Revenue
+                  </span>
+                  <span className="block text-2xl font-bold text-green-600">
+                    {dailyStats?.totalSales || 0}
+                  </span>
+                </div>
+              </div>
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div className="bg-gray-50 p-4 rounded-md">
-                <span className="block text-sm font-medium text-gray-500">Total Orders</span>
-                <span className="block text-2xl font-bold text-gray-900">
-                  {dailyStats?.totalOrders || 0}
-                </span>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-md">
-                <span className="block text-sm font-medium text-gray-500">Total Revenue</span>
-                <span className="block text-2xl font-bold text-green-600">
-                  {dailyStats?.totalSales || 0}
-                </span>
-              </div>
+              {dailyStats?.orders?.length > 0 && (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dailyStats.orders.map((order: any) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.id.slice(-6)}</TableCell>
+                          <TableCell>{order.total}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">{order.status}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </div>
-
-            {dailyStats?.orders?.length > 0 && (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead>
-                  <tr>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order ID
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {dailyStats.orders.map((order: any) => (
-                    <tr key={order.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {order.id.slice(-6)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {order.total}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.status}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pending Payments Section */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Pending Payments</h2>
-
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div className="bg-red-50 p-4 rounded-md">
-                <span className="block text-sm font-medium text-red-800">Pending Orders</span>
-                <span className="block text-2xl font-bold text-red-900">
-                  {pendingStats?.pendingPaymentCount || 0}
-                </span>
-              </div>
-              <div className="bg-red-50 p-4 rounded-md">
-                <span className="block text-sm font-medium text-red-800">Total Amount Due</span>
-                <span className="block text-2xl font-bold text-red-900">
-                  {pendingStats?.totalPendingAmount || 0}
-                </span>
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Pending Payments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="py-4 text-center text-muted-foreground">
+              Loading pending payments...
             </div>
-
-            {pendingStats?.orders?.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead>
-                    <tr>
-                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Order ID
-                      </th>
-                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Customer
-                      </th>
-                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total
-                      </th>
-                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Due Amount
-                      </th>
-                      <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {pendingStats.orders.map((order: any) => (
-                      <tr key={order.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.id.slice(-6)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.customerName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.totalAmount}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-red-600">
-                          {order.dueAmount}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-indigo-600 hover:text-indigo-900">
-                          <a href={`/dashboard/orders/${order.id}`}>View</a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-4 rounded-md border bg-red-50 dark:bg-red-900/20">
+                  <span className="block text-sm font-medium text-red-800 dark:text-red-300">
+                    Pending Orders
+                  </span>
+                  <span className="block text-2xl font-bold text-red-900 dark:text-red-100">
+                    {pendingStats?.pendingPaymentCount || 0}
+                  </span>
+                </div>
+                <div className="p-4 rounded-md border bg-red-50 dark:bg-red-900/20">
+                  <span className="block text-sm font-medium text-red-800 dark:text-red-300">
+                    Total Amount Due
+                  </span>
+                  <span className="block text-2xl font-bold text-red-900 dark:text-red-100">
+                    {pendingStats?.totalPendingAmount || 0}
+                  </span>
+                </div>
               </div>
-            ) : (
-              <p className="text-gray-500 text-sm">No pending payments found.</p>
-            )}
-          </div>
-        )}
-      </div>
+
+              {pendingStats?.orders?.length > 0 ? (
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Order ID</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Due Amount</TableHead>
+                        <TableHead className="text-right">Action</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingStats.orders.map((order: any) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">{order.id.slice(-6)}</TableCell>
+                          <TableCell>{order.customerName}</TableCell>
+                          <TableCell>{order.totalAmount}</TableCell>
+                          <TableCell className="text-destructive font-bold">
+                            {order.dueAmount}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Link
+                              href={`/dashboard/orders/${order.id}`}
+                              className="text-sm font-medium hover:underline text-primary"
+                            >
+                              View
+                            </Link>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No pending payments found.
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

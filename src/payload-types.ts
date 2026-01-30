@@ -69,6 +69,11 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    tenants: Tenant;
+    configurations: Configuration;
+    customers: Customer;
+    orders: Order;
+    expenses: Expense;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +83,11 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    tenants: TenantsSelect<false> | TenantsSelect<true>;
+    configurations: ConfigurationsSelect<false> | ConfigurationsSelect<true>;
+    customers: CustomersSelect<false> | CustomersSelect<true>;
+    orders: OrdersSelect<false> | OrdersSelect<true>;
+    expenses: ExpensesSelect<false> | ExpensesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -122,6 +132,8 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  roles: ('admin' | 'owner' | 'staff')[];
+  tenant?: (string | null) | Tenant;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -142,6 +154,33 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants".
+ */
+export interface Tenant {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: (string | null) | Media;
+  colorTheme?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  contact?: {
+    phone?: string | null;
+    email?: string | null;
+    address?: string | null;
+  };
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -158,6 +197,104 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "configurations".
+ */
+export interface Configuration {
+  id: string;
+  tenant: string | Tenant;
+  invoiceText?: string | null;
+  measurementUnits?:
+    | {
+        unit: string;
+        id?: string | null;
+      }[]
+    | null;
+  productCategories?:
+    | {
+        category: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Define custom fields for orders (e.g., [{"name": "woodType", "label": "Wood Type", "type": "text"}])
+   */
+  customOrderFields?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers".
+ */
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders".
+ */
+export interface Order {
+  id: string;
+  customer: string | Customer;
+  type: 'ready-made' | 'custom';
+  orderDate: string;
+  deliveryDate?: string | null;
+  totalAmount: number;
+  advancePaid: number;
+  remainingPaid?: number | null;
+  dueAmount?: number | null;
+  status: 'pending' | 'in_progress' | 'delivered';
+  customFieldsData?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  paymentHistory?:
+    | {
+        amount?: number | null;
+        type?: ('advance' | 'remaining') | null;
+        date?: string | null;
+        recordedBy?: (string | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expenses".
+ */
+export interface Expense {
+  id: string;
+  title: string;
+  amount: number;
+  date: string;
+  description?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -190,6 +327,26 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: string | Media;
+      } | null)
+    | ({
+        relationTo: 'tenants';
+        value: string | Tenant;
+      } | null)
+    | ({
+        relationTo: 'configurations';
+        value: string | Configuration;
+      } | null)
+    | ({
+        relationTo: 'customers';
+        value: string | Customer;
+      } | null)
+    | ({
+        relationTo: 'orders';
+        value: string | Order;
+      } | null)
+    | ({
+        relationTo: 'expenses';
+        value: string | Expense;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -238,6 +395,8 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  roles?: T;
+  tenant?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -272,6 +431,101 @@ export interface MediaSelect<T extends boolean = true> {
   height?: T;
   focalX?: T;
   focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tenants_select".
+ */
+export interface TenantsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  logo?: T;
+  colorTheme?: T;
+  contact?:
+    | T
+    | {
+        phone?: T;
+        email?: T;
+        address?: T;
+      };
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "configurations_select".
+ */
+export interface ConfigurationsSelect<T extends boolean = true> {
+  tenant?: T;
+  invoiceText?: T;
+  measurementUnits?:
+    | T
+    | {
+        unit?: T;
+        id?: T;
+      };
+  productCategories?:
+    | T
+    | {
+        category?: T;
+        id?: T;
+      };
+  customOrderFields?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "customers_select".
+ */
+export interface CustomersSelect<T extends boolean = true> {
+  name?: T;
+  phone?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "orders_select".
+ */
+export interface OrdersSelect<T extends boolean = true> {
+  customer?: T;
+  type?: T;
+  orderDate?: T;
+  deliveryDate?: T;
+  totalAmount?: T;
+  advancePaid?: T;
+  remainingPaid?: T;
+  dueAmount?: T;
+  status?: T;
+  customFieldsData?: T;
+  paymentHistory?:
+    | T
+    | {
+        amount?: T;
+        type?: T;
+        date?: T;
+        recordedBy?: T;
+        id?: T;
+      };
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "expenses_select".
+ */
+export interface ExpensesSelect<T extends boolean = true> {
+  title?: T;
+  amount?: T;
+  date?: T;
+  description?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

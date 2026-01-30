@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export const GET = async (req: NextRequest) => {
   const payload = await getPayload({ config: configPromise })
+  // @ts-ignore - NextRequest is compatible enough for auth purposes
   const { user } = await payload.auth({ req })
 
   if (!user || !user.tenant) {

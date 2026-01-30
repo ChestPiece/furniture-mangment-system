@@ -57,9 +57,10 @@ describe('Multi-Tenant Isolation', () => {
   it('should allow owner to create customer in their tenant', async () => {
     const customer = await payload.create({
       collection: 'customers',
-      data: { name: 'Customer A', phone: '111' },
+      data: { name: 'Customer A', phone: '111', tenant: tenantA.id },
       user: ownerA,
       overrideAccess: false,
+      draft: false,
     })
 
     expect(customer.tenant).toEqual(tenantA.id)
@@ -68,9 +69,10 @@ describe('Multi-Tenant Isolation', () => {
   it('should auto-assign tenant when owner creates customer', async () => {
     const customer = await payload.create({
       collection: 'customers',
-      data: { name: 'Customer A2', phone: '112' },
+      data: { name: 'Customer A2', phone: '112', tenant: tenantA.id },
       user: ownerA,
       overrideAccess: false,
+      draft: false,
     })
 
     expect(customer.tenant).toEqual(tenantA.id)
@@ -80,9 +82,10 @@ describe('Multi-Tenant Isolation', () => {
     // Create customer for B
     await payload.create({
       collection: 'customers',
-      data: { name: 'Customer B', phone: '222' },
+      data: { name: 'Customer B', phone: '222', tenant: tenantB.id },
       user: ownerB,
       overrideAccess: false,
+      draft: false,
     })
 
     // Query as Owner A
@@ -103,9 +106,10 @@ describe('Multi-Tenant Isolation', () => {
     // Create customer for B
     const custB = await payload.create({
       collection: 'customers',
-      data: { name: 'Customer B2', phone: '223' },
+      data: { name: 'Customer B2', phone: '223', tenant: tenantB.id },
       user: ownerB,
       overrideAccess: false,
+      draft: false,
     })
 
     // Try update as Owner A

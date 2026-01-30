@@ -31,9 +31,10 @@ describe('Orders Logic', () => {
 
     customer = await payload.create({
       collection: 'customers',
-      data: { name: 'Buyer', phone: '999' },
+      data: { name: 'Buyer', phone: '999', tenant: tenant.id },
       user: owner,
       overrideAccess: false,
+      draft: false,
     })
   })
 
@@ -47,9 +48,11 @@ describe('Orders Logic', () => {
         status: 'pending',
         type: 'ready-made',
         orderDate: new Date().toISOString(),
+        tenant: tenant.id,
       },
       user: owner,
       overrideAccess: false,
+      draft: false,
     })
 
     // dueAmount is virtual, usually not returned in create/update result unless specifically populated or computed locally
@@ -76,9 +79,11 @@ describe('Orders Logic', () => {
         status: 'pending',
         type: 'ready-made',
         orderDate: new Date().toISOString(),
+        tenant: tenant.id,
       },
       user: owner,
       overrideAccess: false,
+      draft: false,
     })
 
     try {
@@ -105,9 +110,11 @@ describe('Orders Logic', () => {
         status: 'pending',
         type: 'ready-made',
         orderDate: new Date().toISOString(),
+        tenant: tenant.id,
       },
       user: owner,
       overrideAccess: false,
+      draft: false,
     })
 
     // Pay remaining

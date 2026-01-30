@@ -7,6 +7,7 @@ export const GET = async (req: NextRequest) => {
 
   // Extract user from request - assuming Payload's withPayload functionality or similar
   // For Next.js app router, we usually get user via `payload.auth(req)`
+  // @ts-ignore - NextRequest is compatible enough for auth purposes
   const { user } = await payload.auth({ req })
 
   if (!user || !user.tenant) {

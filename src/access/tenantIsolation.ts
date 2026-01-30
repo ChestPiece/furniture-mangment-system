@@ -32,7 +32,7 @@ export const tenantUsers: Access = ({ req: { user } }) => {
 import { PayloadRequest } from 'payload'
 
 export const tenantFilter = ({ req: { user } }: { req: PayloadRequest }) => {
-  if (user?.roles?.includes('admin')) return null
+  if (user?.roles?.includes('admin')) return true
 
   if (user?.tenant) {
     return {

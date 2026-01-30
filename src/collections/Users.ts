@@ -21,11 +21,12 @@ export const Users: CollectionConfig = {
         }
       }
       // Users can read themselves
+      // Users can read themselves
       return {
         id: {
           equals: user.id,
         },
-      }
+      } as any
     },
     create: ({ req: { user } }) => {
       // Only admins or owners can create users
@@ -50,11 +51,12 @@ export const Users: CollectionConfig = {
         }
       }
       // Users can update themselves
+      // Users can update themselves
       return {
         id: {
           equals: user.id,
         },
-      }
+      } as any
     },
     delete: ({ req: { user } }) => {
       if (!user) return false

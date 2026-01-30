@@ -4,10 +4,12 @@ import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
+import type { Tenant, User } from '@/payload-types'
+
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const payload = await getPayload({ config: configPromise })
   const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
+  const { user } = (await payload.auth({ headers: headersList })) as { user: User | null }
 
   if (!user) {
     redirect('/admin/login') // Or custom login page
@@ -26,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   // Fetch tenant branding if user has a tenant
-  let branding = null
+  let branding: Tenant | null = null
   if (user.tenant) {
     // We would fetch tenant details here including logo/colors
     // For now we assume basic structure
@@ -35,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         ? user.tenant
         : await payload.findByID({
             collection: 'tenants',
-            id: user.tenant,
+            id: user.tenant as string,
           })
     branding = tenant
   }

@@ -5,6 +5,7 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import type { Tenant, User } from '@/payload-types'
+import Link from 'next/link'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const payload = await getPayload({ config: configPromise })
@@ -85,9 +86,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
               <span className="text-sm text-gray-700 mr-4">
                 {user.email} ({user.roles?.join(', ')})
               </span>
-              <a href="/admin/logout" className="text-sm text-red-600 hover:text-red-900">
+              <Link href="/admin/logout" className="text-sm text-red-600 hover:text-red-900">
+                {' '}
                 Logout
-              </a>
+              </Link>
             </div>
           </div>
         </div>

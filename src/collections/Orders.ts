@@ -19,6 +19,7 @@ export const Orders: CollectionConfig = {
       type: 'relationship',
       relationTo: 'customers',
       required: true,
+      index: true,
       filterOptions: ({ req: { user } }) => {
         if (user?.tenant) {
           return {
@@ -44,6 +45,7 @@ export const Orders: CollectionConfig = {
       name: 'orderDate',
       type: 'date',
       required: true,
+      index: true,
       defaultValue: () => new Date().toISOString(),
     },
     {
@@ -103,33 +105,6 @@ export const Orders: CollectionConfig = {
       type: 'json', // Stores dynamic fields defined in configuration
     },
     {
-      name: 'paymentHistory',
-      type: 'array',
-      admin: {
-        readOnly: true,
-      },
-      fields: [
-        {
-          name: 'amount',
-          type: 'number',
-        },
-        {
-          name: 'type',
-          type: 'select',
-          options: ['advance', 'remaining'],
-        },
-        {
-          name: 'date',
-          type: 'date',
-        },
-        {
-          name: 'recordedBy',
-          type: 'relationship',
-          relationTo: 'users',
-        },
-      ],
-    },
-    {
       name: 'tenant',
       type: 'relationship',
       relationTo: 'tenants',
@@ -169,17 +144,6 @@ export const Orders: CollectionConfig = {
         }
 
         return data
-      },
-    ],
-    afterChange: [
-      async ({ doc }) => {
-        // Log payment history if amounts changed
-        // This is a simplified implementation - in production would need careful diffing
-        // For MVP, if we really need history, we should probably treat it as an event log
-        // But the requirements just asked for tracking, not necessarily a ledger.
-        // We'll leave the history array populated by frontend or separate logic for now to keep it simple
-        // or just rely on the current state fields as per MVP requirements (Advance + Remaining)
-        return doc
       },
     ],
   },

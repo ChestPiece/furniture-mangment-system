@@ -65,3 +65,27 @@ That's it! The Docker instance will help you get up and running quickly while al
 ## Questions
 
 If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
+
+## Theming System
+
+The application uses a semantic theming system built with Tailwind CSS variables. The colors are defined in \`src/app/(frontend)/styles.css\` and mapped in \`tailwind.config.ts\`.
+
+### Status Colors
+
+- **Success**: \`bg-success\`, \`text-success-foreground\` (Green) - Used for 'Paid' status, 'Delivered' orders.
+- **Warning**: \`bg-warning\`, \`text-warning-foreground\` (Yellow) - Used for 'Pending' orders.
+- **Info**: \`bg-info\`, \`text-info-foreground\` (Blue) - Used for 'In Progress' orders.
+- **Destructive**: \`bg-destructive\`, \`text-destructive-foreground\` (Red) - Used for 'Due Amount', errors.
+
+To modify these colors, edit the CSS variables in \`src/app/(frontend)/styles.css\`.
+
+## Development
+
+### Testing
+
+- **Unit Tests**: \`npm run test:int\` (Vitest)
+- **E2E Tests**: \`npm run test:e2e\` (Playwright)
+
+### Database
+
+Ensure MongoDB is running locally or configured via \`DATABASE_URL\`.

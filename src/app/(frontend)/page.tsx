@@ -6,16 +6,69 @@ import { StatsCard } from '@/components/dashboard/StatsCard'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { getPayload } from 'payload'
+import configPromise from '@payload-config'
+import { headers } from 'next/headers'
 
-// Mock Data (Replace with real data fetching later)
-const recentOrders: any[] = [] // Set to [] to test empty state
-const stats = {
-  todaySales: 0,
-  pendingPayments: 0,
-  activeOrders: 0,
-}
+export default async function DashboardPage() {
+  const payload = await getPayload({ config: configPromise })
+  const headersList = await headers()
+  const { user } = await payload.auth({ headers: headersList })
 
-export default function DashboardPage() {
+  if (!user || (!user.tenant && user.roles?.includes('owner'))) {
+    // Admin might not have a tenant, but owner/staff should.
+    // For now, if no generic user or no tenant for non-admins, show generic error or nothing.
+    // In a real app, we'd redirect or show a proper error state.
+    if (!user) return <div>Unauthorized</div>
+  }
+
+  // Fetch real data
+  // We fetch a bit more than just "recent" to calculate stats correctly if we want accurate counts.
+  // However, for "active orders" and "pending payments", we might need specific queries or aggregate.
+  // For MVP/small shops, fetching last 100 orders might be enough to calculate daily stats client-side (server-side here).
+  // Optimally we'd run separate 'count' queries, but let's do a single fetch for now to keep it simple as per MVP.
+
+  const { docs: orders } = await payload.find({
+    collection: 'orders',
+    where: {
+      tenant: { equals: user?.tenant },
+    },
+    sort: '-createdAt',
+    limit: 100, // Fetch enough to likely cover "today" and active ones for small shops
+    depth: 1,
+  })
+
+  // Calculate real stats
+  const today = new Date().toISOString().split('T')[0]
+  const todayOrders = orders.filter(
+    (o) => new Date(o.orderDate).toISOString().split('T')[0] === today,
+  )
+
+  const todaySales = todayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0)
+
+  const pendingPaymentsCount = orders.filter((o) => {
+    const total = o.totalAmount || 0
+    const advance = o.advancePaid || 0
+    const remaining = o.remainingPaid || 0
+    const due = total - advance - remaining
+    return due > 0
+  }).length
+
+  const activeOrdersCount = orders.filter(
+    (o) => o.status === 'pending' || o.status === 'in_progress',
+  ).length
+
+  const recentOrders = orders.slice(0, 5).map((order) => {
+    const customerName = typeof order.customer === 'object' ? order.customer?.name : 'Unknown'
+    return {
+      id: order.id,
+      customerName,
+      date: new Date(order.orderDate).toLocaleDateString(),
+      amount: order.totalAmount,
+      status: order.status,
+    }
+  })
+
   const hasOrders = recentOrders.length > 0
 
   return (
@@ -47,21 +100,21 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Today's Sales"
-          value={`$${stats.todaySales}`}
+          value={`$${todaySales}`}
           icon={DollarSign}
           description="Total collected today"
           // trend={{ value: 12, label: 'from yesterday', direction: 'up' }}
         />
         <StatsCard
           title="Pending Payments"
-          value={stats.pendingPayments}
+          value={pendingPaymentsCount}
           icon={Clock}
           description="Orders with due amount"
           className="border-yellow-200 bg-yellow-50/30 dark:border-yellow-900/50 dark:bg-yellow-900/10"
         />
         <StatsCard
           title="Active Orders"
-          value={stats.activeOrders}
+          value={activeOrdersCount}
           icon={ShoppingCart}
           description="In progress or pending"
           linkUrl="/dashboard/orders"

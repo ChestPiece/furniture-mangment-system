@@ -14,9 +14,10 @@ export const Users: CollectionConfig = {
       if (user.roles?.includes('admin')) return true
       // Owners can read users in their tenant
       if (user.roles?.includes('owner')) {
+        const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
         return {
           tenant: {
-            equals: user.tenant,
+            equals: tenantId,
           },
         }
       }
@@ -40,17 +41,13 @@ export const Users: CollectionConfig = {
       if (user.roles?.includes('admin')) return true
       // Owners can update users in their tenant
       if (user.roles?.includes('owner')) {
-        // This needs more complex logic if we want to ensure they only update users in their tenant
-        // For simplistic check, we can rely on row-level read access + verify in hook,
-        // but access control query is safer.
-        // However, `update` access query defines *what* they can update.
+        const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
         return {
           tenant: {
-            equals: user.tenant,
+            equals: tenantId,
           },
-        }
+        } as any
       }
-      // Users can update themselves
       // Users can update themselves
       return {
         id: {
@@ -72,6 +69,10 @@ export const Users: CollectionConfig = {
     },
   },
   fields: [
+    {
+      name: 'name',
+      type: 'text',
+    },
     {
       name: 'roles',
       type: 'select',
@@ -106,11 +107,20 @@ export const Users: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, req, operation }) => {
-        // Auto-assign tenant for non-admins creating users
         if (operation === 'create') {
           const user = req.user
+
+          // Auto-assign tenant for non-admins creating users
           if (user && !user.roles?.includes('admin') && user.tenant) {
             data.tenant = user.tenant
+          }
+
+          // Validate: non-admins MUST have a tenant
+          // We check if the NEW user being created has 'admin' role.
+          // If not, they must have a tenant assigned.
+          const isNewUserAdmin = data.roles?.includes('admin')
+          if (!isNewUserAdmin && !data.tenant) {
+            throw new Error('Tenant is required for non-admin users')
           }
         }
         return data

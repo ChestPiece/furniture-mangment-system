@@ -132,6 +132,7 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  name?: string | null;
   roles: ('admin' | 'owner' | 'staff')[];
   tenant?: (string | null) | Tenant;
   updatedAt: string;
@@ -269,15 +270,6 @@ export interface Order {
     | number
     | boolean
     | null;
-  paymentHistory?:
-    | {
-        amount?: number | null;
-        type?: ('advance' | 'remaining') | null;
-        date?: string | null;
-        recordedBy?: (string | null) | User;
-        id?: string | null;
-      }[]
-    | null;
   tenant: string | Tenant;
   updatedAt: string;
   createdAt: string;
@@ -395,6 +387,7 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  name?: T;
   roles?: T;
   tenant?: T;
   updatedAt?: T;
@@ -501,15 +494,6 @@ export interface OrdersSelect<T extends boolean = true> {
   dueAmount?: T;
   status?: T;
   customFieldsData?: T;
-  paymentHistory?:
-    | T
-    | {
-        amount?: T;
-        type?: T;
-        date?: T;
-        recordedBy?: T;
-        id?: T;
-      };
   tenant?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload'
+import { tenantAdmins, tenantSelfAccess, tenantUsers } from '../access/tenantIsolation'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',
@@ -7,10 +8,10 @@ export const Tenants: CollectionConfig = {
     defaultColumns: ['name', 'slug', 'active', 'createdAt'],
   },
   access: {
-    read: () => true, // TODO: Restrict later
-    create: () => true, // TODO: Restrict later
-    update: () => true, // TODO: Restrict later
-    delete: () => true, // TODO: Restrict later
+    read: tenantSelfAccess,
+    create: ({ req: { user } }) => Boolean(user?.roles?.includes('admin')),
+    update: tenantSelfAccess,
+    delete: ({ req: { user } }) => Boolean(user?.roles?.includes('admin')),
   },
   fields: [
     {

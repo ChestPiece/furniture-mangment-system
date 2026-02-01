@@ -1,4 +1,5 @@
 import { CollectionConfig } from 'payload'
+import { tenantAdmins, tenantFilter } from '../access/tenantIsolation'
 
 export const Configurations: CollectionConfig = {
   slug: 'configurations',
@@ -6,10 +7,10 @@ export const Configurations: CollectionConfig = {
     useAsTitle: 'tenant', // We'll customize this later or rely on ID
   },
   access: {
-    read: () => true, // TODO: Restrict later
-    create: () => true,
-    update: () => true,
-    delete: () => true,
+    read: tenantFilter,
+    create: tenantAdmins,
+    update: tenantAdmins,
+    delete: tenantAdmins,
   },
   fields: [
     {

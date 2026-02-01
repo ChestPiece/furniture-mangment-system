@@ -31,6 +31,14 @@ export const Customers: CollectionConfig = {
       type: 'text',
       required: true,
       index: true,
+      validate: (val: any) => {
+        // Allow +, spaces, dashes, parentheses and numbers
+        if (typeof val !== 'string') return 'Invalid phone number format'
+        if (!/^\+?[\d\s-()]+$/.test(val)) {
+          return 'Invalid phone number format'
+        }
+        return true
+      },
     },
     {
       name: 'tenant',
@@ -51,9 +59,7 @@ export const Customers: CollectionConfig = {
       async ({ data, req, operation }) => {
         if (operation === 'create') {
           const user = req.user
-          // console.log('[DEBUG] Creating customer. User:', user?.email, 'Roles:', user?.roles, 'Tenant:', user?.tenant)
           if (user && user.tenant && !data.tenant) {
-            // console.log('[DEBUG] Auto-assigning tenant:', user.tenant)
             // Ensure we use the ID if tenant is an object
             const tenantId = typeof user.tenant === 'object' ? user.tenant.id : user.tenant
             data.tenant = tenantId

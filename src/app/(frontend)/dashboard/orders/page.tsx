@@ -14,43 +14,84 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PlusCircle, Pencil } from 'lucide-react'
+import { ErrorState } from '@/components/ui/ErrorState'
 
-export default async function OrdersPage() {
+import { OrdersToolbar } from '@/components/dashboard/OrdersToolbar'
+import { Pagination } from '@/components/ui/Pagination'
+
+export default async function OrdersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const payload = await getPayload({ config: configPromise })
   const headersList = await headers()
   const { user } = await payload.auth({ headers: headersList })
 
   if (!user || !user.tenant) {
-    return <div>Unauthorized</div>
+    return (
+      <ErrorState
+        title="Unauthorized Access"
+        message="You must be logged in and associated with a shop to view orders."
+        actionLabel="Return to Dashboard"
+        actionUrl="/dashboard"
+      />
+    )
   }
 
-  const { docs: orders } = await payload.find({
-    collection: 'orders',
-    where: {
-      tenant: {
-        equals: user.tenant,
-      },
+  const resolvedParams = await searchParams
+  const page = typeof resolvedParams.page === 'string' ? Number(resolvedParams.page) : 1
+  const status = typeof resolvedParams.status === 'string' ? resolvedParams.status : undefined
+  const search = typeof resolvedParams.search === 'string' ? resolvedParams.search : undefined
+
+  const query: any = {
+    tenant: {
+      equals: user.tenant,
     },
+  }
+
+  if (status && status !== 'all') {
+    query.status = {
+      equals: status,
+    }
+  }
+
+  // Basic search implementation (searching by ID or exact match on fields if needed)
+  // For extensive search, Payload's local API usually needs specific 'like' queries or full-text search plugins.
+  // We'll implemented a basic ID search for now if a search term is provided.
+  if (search) {
+    query.id = {
+      contains: search,
+    }
+  }
+
+  const { docs: orders, totalPages } = await payload.find({
+    collection: 'orders',
+    where: query,
     sort: '-createdAt',
     depth: 1,
+    limit: 10,
+    page,
   })
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Orders</h1>
-          <p className="text-gray-500">Manage customer orders and payments.</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Orders</h1>
+          <p className="text-muted-foreground">Manage customer orders and payments.</p>
         </div>
         <Button asChild>
           <Link href="/dashboard/orders/new">
-            <PlusCircle className=" h-4 w-4 text-white" />
-            <span className="text-white">Create Order</span>
+            <PlusCircle className=" h-4 w-4" />
+            <span>Create Order</span>
           </Link>
         </Button>
       </div>
 
-      <div className="rounded-md border bg-white">
+      <OrdersToolbar />
+
+      <div className="rounded-md border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -81,17 +122,17 @@ export default async function OrdersPage() {
                     <Badge
                       variant={
                         order.status === 'delivered'
-                          ? 'default' // default is primary/black, or green if styled
+                          ? 'default'
                           : order.status === 'pending'
                             ? 'secondary'
                             : 'outline'
                       }
                       className={
                         order.status === 'delivered'
-                          ? 'bg-green-600 hover:bg-green-700'
+                          ? 'bg-success text-success-foreground hover:bg-success/90'
                           : order.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200 border-none shadow-none'
-                            : 'bg-blue-100 text-blue-800 hover:bg-blue-200 border-none shadow-none'
+                            ? 'bg-warning text-warning-foreground hover:bg-warning/90 border-none shadow-none'
+                            : 'bg-info text-info-foreground hover:bg-info/90 border-none shadow-none'
                       }
                     >
                       {order.status}
@@ -100,9 +141,9 @@ export default async function OrdersPage() {
                   <TableCell>{order.totalAmount}</TableCell>
                   <TableCell>
                     {calculatedDue > 0 ? (
-                      <span className="text-red-600 font-bold">{calculatedDue}</span>
+                      <span className="text-destructive font-bold">{calculatedDue}</span>
                     ) : (
-                      <span className="text-green-600 font-bold">Paid</span>
+                      <span className="text-success font-bold">Paid</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -126,6 +167,8 @@ export default async function OrdersPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Pagination totalPages={totalPages} />
     </div>
   )
 }

@@ -242,7 +242,7 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
-  tenant?: (string | null) | Tenant;
+  tenant: string | Tenant;
   updatedAt: string;
   createdAt: string;
 }

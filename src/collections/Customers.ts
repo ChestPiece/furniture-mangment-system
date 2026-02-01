@@ -44,13 +44,13 @@ export const Customers: CollectionConfig = {
       name: 'tenant',
       type: 'relationship',
       relationTo: 'tenants',
-      required: false,
+      required: true,
       index: true,
       admin: {
-        hidden: true, // Should be auto-populated
+        hidden: true,
       },
       access: {
-        update: () => false, // Prevent changing tenant
+        update: () => false,
       },
     },
   ],

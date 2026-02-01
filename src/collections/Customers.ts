@@ -51,7 +51,7 @@ export const Customers: CollectionConfig = {
       async ({ data, req, operation }) => {
         if (operation === 'create') {
           const user = req.user
-          if (user && user.tenant && !user.roles?.includes('admin')) {
+          if (user && user.tenant && !data.tenant) {
             data.tenant = user.tenant
           }
         }

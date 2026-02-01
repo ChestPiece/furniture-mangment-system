@@ -42,7 +42,9 @@ export default async function CustomersPage() {
         </div>
         <Button asChild>
           <Link href="/dashboard/customers/new">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add Customer
+
+            <PlusCircle className=" h-4 w-4 text-white" />
+            <span className="text-white">Add Customer</span>
           </Link>
         </Button>
       </div>

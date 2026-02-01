@@ -5,7 +5,21 @@ import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Tenant, User } from '@/payload-types'
 import Link from 'next/link'
-import './styles.css'
+import '@/app/(frontend)/styles.css'
+import { AppSidebar } from '@/components/layout/AppSidebar'
+import { Outfit, Inter } from 'next/font/google'
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+})
 
 export const metadata = {
   description: 'Furniture Shop Management System',
@@ -27,12 +41,10 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
     return (
       <html lang="en">
         <body>
-          <div className="flex h-screen items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold text-red-600">No Shop Assigned</h1>
-              <p className="mt-2 text-gray-600">
-                This user account is not associated with any shop.
-              </p>
+          <div className="flex h-screen items-center justify-center bg-gray-50">
+            <div className="text-center p-8 bg-white rounded-lg shadow-md">
+              <h1 className="text-2xl font-bold text-red-600 mb-2">No Shop Assigned</h1>
+              <p className="text-gray-600">This user account is not associated with any shop.</p>
             </div>
           </div>
         </body>
@@ -54,60 +66,20 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   }
 
   return (
-    <html lang="en">
-      <body>
-        <div className="min-h-screen bg-gray-50">
-          <nav className="bg-white border-b border-gray-200 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between h-16">
-                <div className="flex">
-                  <div className="flex-shrink-0 flex items-center">
-                    {(branding?.logo && (
-                      <span className="font-bold text-xl">{branding.name}</span>
-                    )) || <span className="font-bold text-xl">Furniture Shop</span>}
-                  </div>
-                  <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                    <Link
-                      href="/"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                    >
-                      Dashboard
-                    </Link>
-                    <a
-                      href="/dashboard/orders"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                    >
-                      Orders
-                    </a>
-                    <a
-                      href="/dashboard/customers"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                    >
-                      Customers
-                    </a>
-                    <a
-                      href="/dashboard/reports"
-                      className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                    >
-                      Reports
-                    </a>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-700 mr-4">
-                    {user.email} ({user.roles?.join(', ')})
-                  </span>
-                  <Link href="/admin/logout" className="text-sm text-red-600 hover:text-red-900">
-                    {' '}
-                    Logout
-                  </Link>
-                </div>
-              </div>
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+      <body className="bg-gray-50/50 font-sans antialiased text-slate-800">
+        <div className="flex min-h-screen">
+          <AppSidebar
+            user={{
+              email: user.email,
+              roles: user.roles || [], // Ensure roles is always an array
+            }}
+            branding={branding}
+          />
+          <main className="flex-1 w-full relative h-screen overflow-y-auto">
+            <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 pt-20 lg:pt-8 w-full">
+              {children}
             </div>
-          </nav>
-
-          <main className="py-10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
           </main>
         </div>
       </body>

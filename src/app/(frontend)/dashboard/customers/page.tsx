@@ -35,20 +35,6 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Customers</h1>
-          <p className="text-gray-500">Manage your customer base.</p>
-        </div>
-        <Button asChild>
-          <Link href="/dashboard/customers/new">
-
-            <PlusCircle className=" h-4 w-4 text-white" />
-            <span className="text-white">Add Customer</span>
-          </Link>
-        </Button>
-      </div>
-
       <div className="rounded-md border bg-white">
         <Table>
           <TableHeader>
@@ -88,6 +74,14 @@ export default async function CustomersPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-between">
+        <Button asChild>
+          <Link href="/dashboard/customers/new">
+            <PlusCircle className=" h-4 w-4" />
+            <span>Add Customer</span>
+          </Link>
+        </Button>
       </div>
     </div>
   )

@@ -46,7 +46,7 @@ export default function NewCustomerPage() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6 tracking-tight">Add New Customer</h1>
+      <h3 className="text-2xl font-bold mb-6 tracking-tight">Add New Customer</h3>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (

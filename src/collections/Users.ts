@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { extractTenantId } from '../lib/tenant-utils'
+
 export const Users: CollectionConfig = {
   slug: 'users',
   admin: {
@@ -14,14 +16,13 @@ export const Users: CollectionConfig = {
       if (user.roles?.includes('admin')) return true
       // Owners can read users in their tenant
       if (user.roles?.includes('owner')) {
-        const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+        const tenantId = extractTenantId(user.tenant)
         return {
           tenant: {
             equals: tenantId,
           },
         }
       }
-      // Users can read themselves
       // Users can read themselves
       return {
         id: {
@@ -41,7 +42,7 @@ export const Users: CollectionConfig = {
       if (user.roles?.includes('admin')) return true
       // Owners can update users in their tenant
       if (user.roles?.includes('owner')) {
-        const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+        const tenantId = extractTenantId(user.tenant)
         return {
           tenant: {
             equals: tenantId,
@@ -59,9 +60,10 @@ export const Users: CollectionConfig = {
       if (!user) return false
       if (user.roles?.includes('admin')) return true
       if (user.roles?.includes('owner')) {
+        const tenantId = extractTenantId(user.tenant)
         return {
           tenant: {
-            equals: user.tenant,
+            equals: tenantId,
           },
         }
       }

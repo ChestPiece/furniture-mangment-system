@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { tenantFilter } from '../access/tenantIsolation'
+import { extractTenantId } from '../lib/tenant-utils'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -24,7 +25,7 @@ export const Orders: CollectionConfig = {
         if (user?.tenant) {
           return {
             tenant: {
-              equals: user.tenant,
+              equals: extractTenantId(user.tenant),
             },
           }
         }
@@ -122,7 +123,7 @@ export const Orders: CollectionConfig = {
         if (operation === 'create') {
           const user = req.user
           if (user && user.tenant && !user.roles?.includes('admin')) {
-            data.tenant = user.tenant
+            data.tenant = extractTenantId(user.tenant)
           }
         }
 

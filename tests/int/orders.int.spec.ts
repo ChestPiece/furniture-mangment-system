@@ -12,6 +12,12 @@ describe('Orders Logic', () => {
     const payloadConfig = await config
     payload = await getPayload({ config: payloadConfig })
 
+    // Clean up
+    await payload.delete({ collection: 'orders', where: { id: { exists: true } } })
+    await payload.delete({ collection: 'customers', where: { id: { exists: true } } })
+    await payload.delete({ collection: 'users', where: { email: { contains: 'test' } } })
+    await payload.delete({ collection: 'tenants', where: { slug: { equals: 'order-shop' } } })
+
     // Setup Tenant & User
     tenant = await payload.create({
       collection: 'tenants',
@@ -66,10 +72,12 @@ describe('Orders Logic', () => {
     })
 
     expect(refetched.dueAmount).toEqual(800)
-    expect(refetched.tenant).toEqual(tenant.id)
+    const tenantId = typeof refetched.tenant === 'object' ? refetched.tenant.id : refetched.tenant
+    expect(tenantId).toEqual(tenant.id)
   })
 
   it('should prevent marking as delivered if due amount > 0', async () => {
+    // Re-fetch customer to ensure we have clean data? No, customer.id is enough.
     const order = await payload.create({
       collection: 'orders',
       data: {
@@ -86,18 +94,15 @@ describe('Orders Logic', () => {
       draft: false,
     })
 
-    try {
-      await payload.update({
+    await expect(
+      payload.update({
         collection: 'orders',
         id: order.id,
         data: { status: 'delivered' },
         user: owner,
         overrideAccess: false,
-      })
-      expect.fail('Should have thrown error')
-    } catch (e: any) {
-      expect(e.message).toContain('Cannot mark as delivered while there is a due amount')
-    }
+      }),
+    ).rejects.toThrow(/Cannot mark as delivered/)
   })
 
   it('should allow delivery if paid in full', async () => {

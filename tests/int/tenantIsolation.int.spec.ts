@@ -113,20 +113,14 @@ describe('Multi-Tenant Isolation', () => {
     })
 
     // Try update as Owner A
-    try {
-      await payload.update({
+    await expect(
+      payload.update({
         collection: 'customers',
         id: custB.id,
         data: { name: 'Hacked' },
         user: ownerA,
         overrideAccess: false,
-      })
-      expect.fail('Should have thrown Forbidden')
-    } catch (e: any) {
-      expect(e).toBeDefined()
-      // Payload might throw 403 or return null depending on API
-      // Local API update usually throws NotFound if access control filters it out
-      // or Forbidden. But typically it filters by ID + Access, so it just won't find it.
-    }
+      }),
+    ).rejects.toThrow()
   })
 })

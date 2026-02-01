@@ -1,10 +1,28 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { jwtVerify } from 'jose'
 
-// Simple in-memory rate limiter
+// Simple in-memory rate limiter with cleanup
 const rateLimit = new Map<string, { count: number; lastReset: number }>()
-const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const MAX_REQUESTS = 100 // 100 requests per minute
+
+// Configuration
+const RATE_LIMIT_WINDOW = parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000') // 1 minute
+const MAX_REQUESTS = parseInt(process.env.MAX_REQUESTS_PER_WINDOW || '100') // 100 requests per minute
+const CLEANUP_INTERVAL = 60 * 60 * 1000 // 1 hour
+
+// Periodic cleanup to prevent memory leaks
+let lastCleanup = Date.now()
+const cleanupRateLimit = () => {
+  const now = Date.now()
+  if (now - lastCleanup > CLEANUP_INTERVAL) {
+    for (const [key, record] of rateLimit.entries()) {
+      if (now - record.lastReset > RATE_LIMIT_WINDOW) {
+        rateLimit.delete(key)
+      }
+    }
+    lastCleanup = now
+  }
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -14,7 +32,8 @@ export async function middleware(request: NextRequest) {
 
   // 2. Rate Limiting (Skip for non-API routes)
   if (pathname.startsWith('/api')) {
-    const ip = request.ip || '127.0.0.1'
+    cleanupRateLimit()
+    const ip = request.headers.get('x-forwarded-for') || '127.0.0.1'
     const now = Date.now()
     const record = rateLimit.get(ip) || { count: 0, lastReset: now }
 
@@ -34,24 +53,18 @@ export async function middleware(request: NextRequest) {
   // 3. Auth & Role-Based Access Control
   const token = request.cookies.get('payload-token')?.value
 
-  // Helper to get user role from token (simplified decoding)
-  // NOTE: In a real prod environment, verify signature using 'jose' or similar
-  const getUserRole = (token: string) => {
+  // Helper to get user role from token (secure verification)
+  const getUserRole = async (token: string) => {
     try {
-      const parts = token.split('.')
-      if (parts.length !== 3) return null
-      const payload = JSON.parse(atob(parts[1]))
-      // payload.collection would be 'users'
-      // payload.roles is typically an array for Payload users if configured that way,
-      // or we might need to rely on what's in the JWT.
-      // Based on Users collection: saveToJWT: true on roles field.
-      return payload.roles || []
+      const secret = new TextEncoder().encode(process.env.PAYLOAD_SECRET || '')
+      const { payload } = await jwtVerify(token, secret)
+      return (payload.roles as string[]) || []
     } catch {
       return null
     }
   }
 
-  const roles = token ? getUserRole(token) : []
+  const roles = token ? await getUserRole(token) : []
   const isAdmin = roles?.includes('admin')
   const isOwnerOrStaff = roles?.includes('owner') || roles?.includes('staff')
 

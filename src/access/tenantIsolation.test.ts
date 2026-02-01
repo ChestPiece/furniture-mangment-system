@@ -55,7 +55,7 @@ describe('tenantIsolation', () => {
     const result = tenantFilter({ req: mockReq })
     expect(result).toEqual({
       tenant: {
-        equals: undefined, // Or check specific behavior
+        exists: false,
       },
     })
   })

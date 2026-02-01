@@ -1,71 +1,100 @@
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { extractTenantId } from '@/lib/tenant-utils'
+import { unstable_cache } from 'next/cache'
+
+const querySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+})
 
 export const GET = async (req: NextRequest) => {
   const payload = await getPayload({ config: configPromise })
-  // @ts-ignore - NextRequest is compatible enough for auth purposes
-  const { user } = await payload.auth({ req })
+  const { user } = await payload.auth({ headers: req.headers })
 
-  if (!user || !user.tenant) {
+  const tenantId = extractTenantId(user?.tenant)
+
+  if (!user || !tenantId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    // We can't query by virtual fields directly in MongoDB usually (unless saved)
-    // payload-types says dueAmount is virtual.
-    // So we query generally (or filter where status != delivered) and filter in memory,
-    // OR we query where remainingPaid + advancePaid < totalAmount?
-    // Math queries can be tricky in MongoDB/Payload without aggregation.
-    // Let's fetch non-delivered orders as a proxy for "likely pending payments" or fetch all active/pending/in_progress.
-    // Or, actually, "dueAmount" logic is simple: total > advance + remaining.
-    // We can't do arbitrary math in `where` easily.
-    // We will fetch orders that are NOT delivered first, as delivered usually means paid.
-    // But requirement says "Remaining payment is collected... Order is marked as delivered".
-    // So "not delivered" is a good candidate set.
+    const { searchParams } = new URL(req.url)
+    const result = querySchema.safeParse({
+      page: searchParams.get('page'),
+      limit: searchParams.get('limit'),
+    })
 
-    const orders = await payload.find({
-      collection: 'orders',
-      where: {
-        and: [
-          {
-            tenant: {
-              equals: user.tenant,
-            },
+    if (!result.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: result.error.format() },
+        { status: 400 },
+      )
+    }
+
+    const { page, limit } = result.data
+
+    const getCachedReport = unstable_cache(
+      async (tenantId: string, page: number, limit: number) => {
+        const orders = await payload.find({
+          collection: 'orders',
+          where: {
+            and: [
+              {
+                tenant: {
+                  equals: tenantId,
+                },
+              },
+              {
+                status: {
+                  not_equals: 'delivered',
+                },
+              },
+            ],
           },
-          {
-            status: {
-              not_equals: 'delivered',
-            },
+          depth: 1,
+          limit: limit,
+          page: page,
+        })
+
+        const pendingOrders = orders.docs
+          .filter((order) => {
+            const total = order.totalAmount || 0
+            const paid = (order.advancePaid || 0) + (order.remainingPaid || 0)
+            return total > paid
+          })
+          .map((order) => ({
+            id: order.id,
+            customerName:
+              typeof order.customer === 'object' ? order.customer.name : 'Unknown Customer',
+            totalAmount: order.totalAmount,
+            dueAmount:
+              (order.totalAmount || 0) - ((order.advancePaid || 0) + (order.remainingPaid || 0)),
+            orderDate: order.orderDate,
+            status: order.status,
+          }))
+
+        return {
+          pendingPaymentCount: pendingOrders.length,
+          totalPendingAmount: pendingOrders.reduce((sum, o) => sum + o.dueAmount, 0),
+          orders: pendingOrders,
+          pagination: {
+            page: orders.page,
+            totalPages: orders.totalPages,
+            totalDocs: orders.totalDocs,
+            limit: orders.limit,
           },
-        ],
+        }
       },
-      depth: 1, // To get customer name
-      limit: 1000,
-    })
+      [`pending-payments-${tenantId}`], // Cache key
+      { revalidate: 60, tags: [`orders-tenant-${tenantId}`] }, // Revalidate every minute
+    )
 
-    // Filter in memory for dueAmount > 0
-    const pendingOrders = orders.docs
-      .filter((order) => {
-        const total = order.totalAmount || 0
-        const paid = (order.advancePaid || 0) + (order.remainingPaid || 0)
-        return total > paid
-      })
-      .map((order) => ({
-        id: order.id,
-        customerName: typeof order.customer === 'object' ? order.customer?.name : 'Unknown',
-        totalAmount: order.totalAmount,
-        dueAmount:
-          (order.totalAmount || 0) - ((order.advancePaid || 0) + (order.remainingPaid || 0)),
-        orderDate: order.orderDate,
-        status: order.status,
-      }))
+    const data = await getCachedReport(tenantId, page, limit)
 
-    return NextResponse.json({
-      pendingPaymentCount: pendingOrders.length,
-      totalPendingAmount: pendingOrders.reduce((sum, o) => sum + o.dueAmount, 0),
-      orders: pendingOrders,
-    })
+    return NextResponse.json(data)
   } catch (error) {
     console.error('Report error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })

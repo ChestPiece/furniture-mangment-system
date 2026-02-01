@@ -37,8 +37,13 @@ export default function NewCustomerPage() {
 
       router.push('/dashboard/customers')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      console.error(err)
+      if (err instanceof Error) {
+        setError(err.message)
+      } else {
+        setError('An unexpected error occurred')
+      }
     } finally {
       setLoading(false)
     }
@@ -48,7 +53,7 @@ export default function NewCustomerPage() {
     <div className="max-w-xl mx-auto">
       <h3 className="text-2xl font-bold mb-6 tracking-tight">Add New Customer</h3>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {error && (
           <div className="bg-destructive/15 p-4 rounded-md text-destructive text-sm font-medium">
             {error}

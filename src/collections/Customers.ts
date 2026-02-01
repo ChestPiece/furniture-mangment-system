@@ -1,5 +1,6 @@
 import { CollectionConfig } from 'payload'
 import { tenantFilter } from '../access/tenantIsolation'
+import { extractTenantId } from '../lib/tenant-utils'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -56,12 +57,12 @@ export const Customers: CollectionConfig = {
   ],
   hooks: {
     beforeChange: [
-      async ({ data, req, operation }) => {
+      ({ data, req, operation }) => {
         if (operation === 'create') {
           const user = req.user
           if (user && user.tenant && !data.tenant) {
             // Ensure we use the ID if tenant is an object
-            const tenantId = typeof user.tenant === 'object' ? user.tenant.id : user.tenant
+            const tenantId = extractTenantId(user.tenant)
             data.tenant = tenantId
           }
         }

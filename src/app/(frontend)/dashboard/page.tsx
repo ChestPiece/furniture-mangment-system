@@ -13,6 +13,7 @@ import {
 import { StatsCard } from '@/components/dashboard/StatsCard'
 import { AnimatedCounter } from '@/components/dashboard/AnimatedCounter'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { formatCurrency } from '@/utilities/formatCurrency'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import {
@@ -121,7 +122,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatsCard
           title="Today's Sales"
-          value={<AnimatedCounter value={todaySales} prefix="$" />}
+          value={<AnimatedCounter value={todaySales} prefix="Rs. " />}
           icon={DollarSign}
           description="Total revenue collected today"
           className="delay-100"
@@ -208,7 +209,7 @@ export default async function DashboardPage() {
                           <StatusBadge status={order.status} />
                         </TableCell>
                         <TableCell className="text-right font-bold text-foreground py-4 font-mono">
-                          ${order.amount?.toLocaleString()}
+                          {formatCurrency(order.amount || 0)}
                         </TableCell>
                       </TableRow>
                     ))}

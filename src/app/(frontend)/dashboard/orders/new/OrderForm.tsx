@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Card, CardContent } from '@/components/ui/card'
+import { formatCurrency } from '@/utilities/formatCurrency'
 
 export default function OrderForm({ customers, config }: { customers: any[]; config: any }) {
   const router = useRouter()
@@ -230,7 +231,7 @@ export default function OrderForm({ customers, config }: { customers: any[]; con
               <span
                 className={`ml-2 text-xl font-bold ${dueAmount > 0 ? 'text-destructive' : 'text-green-600'}`}
               >
-                {dueAmount}
+                {formatCurrency(dueAmount)}
               </span>
             </div>
           </div>

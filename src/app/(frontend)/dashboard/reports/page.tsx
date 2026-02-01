@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { formatCurrency } from '@/utilities/formatCurrency'
 
 export default function ReportsPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -78,7 +79,7 @@ export default function ReportsPage() {
                     Total Revenue
                   </span>
                   <span className="block text-2xl font-bold text-green-600">
-                    {dailyStats?.totalSales || 0}
+                    {formatCurrency(dailyStats?.totalSales || 0)}
                   </span>
                 </div>
               </div>
@@ -97,7 +98,7 @@ export default function ReportsPage() {
                       {dailyStats.orders.map((order: any) => (
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.id.slice(-6)}</TableCell>
-                          <TableCell>{order.total}</TableCell>
+                          <TableCell>{formatCurrency(order.total)}</TableCell>
                           <TableCell>
                             <Badge variant="outline">{order.status}</Badge>
                           </TableCell>
@@ -138,7 +139,7 @@ export default function ReportsPage() {
                     Total Amount Due
                   </span>
                   <span className="block text-2xl font-bold text-red-900 dark:text-red-100">
-                    {pendingStats?.totalPendingAmount || 0}
+                    {formatCurrency(pendingStats?.totalPendingAmount || 0)}
                   </span>
                 </div>
               </div>
@@ -160,9 +161,9 @@ export default function ReportsPage() {
                         <TableRow key={order.id}>
                           <TableCell className="font-medium">{order.id.slice(-6)}</TableCell>
                           <TableCell>{order.customerName}</TableCell>
-                          <TableCell>{order.totalAmount}</TableCell>
+                          <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                           <TableCell className="text-destructive font-bold">
-                            {order.dueAmount}
+                            {formatCurrency(order.dueAmount)}
                           </TableCell>
                           <TableCell className="text-right">
                             <Link

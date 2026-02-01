@@ -1,4 +1,5 @@
 import { Access } from 'payload'
+import { extractTenantId } from '../lib/tenant-utils'
 
 /**
  * Access control ensuring only admins or the specific tenant owner can access.
@@ -9,7 +10,7 @@ export const tenantAdmins: Access = ({ req: { user } }) => {
 
   // Allow owners to manage their own tenant settings
   if (user?.roles?.includes('owner')) {
-    const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+    const tenantId = extractTenantId(user.tenant)
     return {
       tenant: {
         equals: tenantId,
@@ -28,7 +29,7 @@ export const tenantUsers: Access = ({ req: { user } }) => {
   if (user?.roles?.includes('admin')) return true
 
   if (user?.tenant) {
-    const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+    const tenantId = extractTenantId(user.tenant)
     return {
       tenant: {
         equals: tenantId,
@@ -50,7 +51,7 @@ export const tenantFilter = ({ req: { user } }: { req: PayloadRequest }) => {
   if (user?.roles?.includes('admin')) return true
 
   if (user?.tenant) {
-    const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+    const tenantId = extractTenantId(user.tenant)
     return {
       tenant: {
         equals: tenantId,
@@ -73,7 +74,7 @@ export const tenantSelfAccess: Access = ({ req: { user } }) => {
   if (user?.roles?.includes('admin')) return true
 
   if (user?.roles?.includes('owner')) {
-    const tenantId = typeof user.tenant === 'object' ? (user.tenant as any).id : user.tenant
+    const tenantId = extractTenantId(user.tenant)
     return {
       id: {
         equals: tenantId,

@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PlusCircle, Pencil } from 'lucide-react'
 import { ErrorState } from '@/components/ui/ErrorState'
+import { formatCurrency } from '@/utilities/formatCurrency'
 
 import { OrdersToolbar } from '@/components/dashboard/OrdersToolbar'
 import { Pagination } from '@/components/ui/Pagination'
@@ -125,10 +126,12 @@ export default async function OrdersPage({
                       {order.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>{order.totalAmount}</TableCell>
+                  <TableCell>{formatCurrency(order.totalAmount || 0)}</TableCell>
                   <TableCell>
                     {calculatedDue > 0 ? (
-                      <span className="text-destructive font-bold">{calculatedDue}</span>
+                      <span className="text-destructive font-bold">
+                        {formatCurrency(calculatedDue)}
+                      </span>
                     ) : (
                       <span className="text-success font-bold">Paid</span>
                     )}

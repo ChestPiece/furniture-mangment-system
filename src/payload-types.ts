@@ -241,7 +241,7 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
-  tenant: string | Tenant;
+  tenant?: (string | null) | Tenant;
   updatedAt: string;
   createdAt: string;
 }

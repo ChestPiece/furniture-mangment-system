@@ -44,7 +44,8 @@ export default async function OrdersPage() {
         </div>
         <Button asChild>
           <Link href="/dashboard/orders/new">
-            <PlusCircle className="mr-2 h-4 w-4" /> Create Order
+            <PlusCircle className=" h-4 w-4 text-white" />
+            <span className="text-white">Create Order</span>
           </Link>
         </Button>
       </div>

@@ -52,12 +52,20 @@ export async function updateCustomer(id: string, data: any) {
   try {
     await payload.update({
       collection: 'customers',
-      id,
       data,
       where: {
-        tenant: {
-          equals: user.tenant,
-        },
+        and: [
+          {
+            id: {
+              equals: id,
+            },
+          },
+          {
+            tenant: {
+              equals: user.tenant,
+            },
+          },
+        ],
       },
     })
     revalidatePath(`/dashboard/customers/${id}`)

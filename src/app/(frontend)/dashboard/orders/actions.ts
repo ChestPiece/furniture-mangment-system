@@ -17,11 +17,19 @@ export async function deleteOrder(id: string) {
   try {
     await payload.delete({
       collection: 'orders',
-      id,
       where: {
-        tenant: {
-          equals: user.tenant,
-        }
+        and: [
+          {
+            id: {
+              equals: id,
+            },
+          },
+          {
+            tenant: {
+              equals: user.tenant,
+            },
+          },
+        ],
       },
     })
     revalidatePath('/dashboard/orders')

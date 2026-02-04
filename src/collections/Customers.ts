@@ -42,6 +42,12 @@ export const Customers: CollectionConfig = {
       },
     },
     {
+      name: 'email',
+      type: 'email',
+      required: false, // Optional for now
+      index: true,
+    },
+    {
       name: 'tenant',
       type: 'relationship',
       relationTo: 'tenants',

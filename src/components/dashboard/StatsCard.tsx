@@ -16,7 +16,7 @@ interface StatsCardProps {
   }
   linkUrl?: string
   className?: string
-  iconClassName?: string
+  iconClassName?: string // kept for backward compatibility but unused in new design
 }
 
 export const StatsCard: React.FC<StatsCardProps> = ({
@@ -27,32 +27,22 @@ export const StatsCard: React.FC<StatsCardProps> = ({
   trend,
   linkUrl,
   className,
-  iconClassName,
 }) => {
   const content = (
     <Card
       className={cn(
-        'group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 border-muted/60 bg-white/50 backdrop-blur-sm',
+        'group relative overflow-hidden transition-all duration-200 hover:shadow-md border-border',
         className,
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground font-sans">
           {title}
         </CardTitle>
-        <div
-          className={cn(
-            'p-2 rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground',
-            iconClassName,
-          )}
-        >
-          <Icon className="h-4 w-4" />
-        </div>
+        <Icon className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
       </CardHeader>
-      <CardContent className="relative z-10">
-        <div className="text-3xl font-bold font-heading tracking-tight">{value}</div>
+      <CardContent>
+        <div className="text-2xl font-bold font-sans tracking-tight text-foreground">{value}</div>
         {(description || trend) && (
           <div className="flex items-center mt-1 space-x-2">
             {trend && (
@@ -60,9 +50,11 @@ export const StatsCard: React.FC<StatsCardProps> = ({
                 className={cn(
                   'flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full',
                   trend.direction === 'up' &&
-                    'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                    'bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400',
                   trend.direction === 'down' &&
-                    'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    'bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                  trend.direction === 'neutral' &&
+                    'bg-slate-50 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
                 )}
               >
                 {trend.direction === 'up' ? (
@@ -86,7 +78,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({
     return (
       <Link
         href={linkUrl}
-        className="block outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl"
+        className="block outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-lg"
       >
         {content}
       </Link>

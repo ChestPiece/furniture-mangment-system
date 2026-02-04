@@ -2,19 +2,12 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+
 import { Loader2, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const LoginPage = () => {
@@ -61,31 +54,30 @@ const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8">
+    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50 via-slate-50 to-white px-4 py-12 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md space-y-8 relative">
+        <div className="absolute inset-0 bg-grid-slate-900/[0.04] -z-10 bg-[bottom_1px_center] [mask-image:linear-gradient(to_bottom,transparent,black)]" />
+
         <div className="flex flex-col items-center">
-          <div className="rounded-full bg-primary/10 p-3 mb-4">
+          <div className="rounded-xl bg-primary/10 p-3 mb-6 ring-1 ring-primary/20 shadow-sm">
             <Store className="h-8 w-8 text-primary" />
           </div>
-          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Welcome back
+          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900 font-heading">
+            Furniture Shop
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to manage your furniture shop
+          <p className="mt-2 text-center text-sm text-muted-foreground max-w-xs">
+            Enter your credentials to access the management dashboard.
           </p>
         </div>
 
-        <Card className="border-muted shadow-lg">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl text-center">Sign In</CardTitle>
-            <CardDescription className="text-center">
-              Enter your email and password to access your dashboard
-            </CardDescription>
+        <Card className="border-border/60 shadow-xl bg-white/80 backdrop-blur-sm">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-xl text-center font-medium">Authentication</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email Address</Label>
                 <Input
                   id="email"
                   type="email"
@@ -94,12 +86,12 @@ const LoginPage = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
+                  className="bg-white/50"
                 />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
-                  {/* Forgot password link could go here */}
                 </div>
                 <Input
                   id="password"
@@ -108,20 +100,25 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   disabled={loading}
+                  className="bg-white/50"
                 />
               </div>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="py-2">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button
+                type="submit"
+                className="w-full shadow-md hover:shadow-lg transition-all"
+                disabled={loading}
+              >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Authenticating...
                   </>
                 ) : (
                   'Sign In'
@@ -129,12 +126,9 @@ const LoginPage = () => {
               </Button>
             </form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4 text-center text-sm text-gray-500">
-            <div className="text-center text-sm">
-              Don&apos;t have an account?{' '}
-              <Link href="/contact-support" className="font-semibold text-primary hover:underline">
-                Contact Support
-              </Link>
+          <CardFooter className="flex flex-col space-y-4 text-center text-sm text-gray-500 pt-2 pb-6">
+            <div className="text-center text-xs text-muted-foreground">
+              Powered by Payload CMS & Next.js
             </div>
           </CardFooter>
         </Card>

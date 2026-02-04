@@ -1,24 +1,15 @@
+import Link from 'next/link'
 import React from 'react'
 import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { headers } from 'next/headers'
-import Link from 'next/link'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Pencil } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
 import { ErrorState } from '@/components/ui/ErrorState'
-import { formatCurrency } from '@/utilities/formatCurrency'
 
 import { OrdersToolbar } from '@/components/dashboard/OrdersToolbar'
 import { Pagination } from '@/components/ui/Pagination'
+import { OrdersTable } from '@/components/dashboard/OrdersTable'
 
 export default async function OrdersPage({
   searchParams,
@@ -79,83 +70,8 @@ export default async function OrdersPage({
     <div className="space-y-6">
       <OrdersToolbar />
 
-      <div className="rounded-md border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">Order ID</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>Due Amount</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {orders.map((order) => {
-              const customerName =
-                typeof order.customer === 'object' ? order.customer?.name : 'Unknown'
-              const calculatedDue = Math.max(
-                0,
-                (order.totalAmount || 0) - (order.advancePaid || 0) - (order.remainingPaid || 0),
-              )
-
-              return (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id.slice(-6)}</TableCell>
-                  <TableCell>{new Date(order.orderDate).toLocaleDateString()}</TableCell>
-                  <TableCell>{customerName}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        order.status === 'delivered'
-                          ? 'default'
-                          : order.status === 'pending'
-                            ? 'secondary'
-                            : 'outline'
-                      }
-                      className={
-                        order.status === 'delivered'
-                          ? 'bg-success text-success-foreground hover:bg-success/90'
-                          : order.status === 'pending'
-                            ? 'bg-warning text-warning-foreground hover:bg-warning/90 border-none shadow-none'
-                            : 'bg-info text-info-foreground hover:bg-info/90 border-none shadow-none'
-                      }
-                    >
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatCurrency(order.totalAmount || 0)}</TableCell>
-                  <TableCell>
-                    {calculatedDue > 0 ? (
-                      <span className="text-destructive font-bold">
-                        {formatCurrency(calculatedDue)}
-                      </span>
-                    ) : (
-                      <span className="text-success font-bold">Paid</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/dashboard/orders/${order.id}`}>
-                        <Pencil className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
-                      </Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-            {orders.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
-                  No orders found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+      <div className="rounded-lg border border-border bg-card">
+        <OrdersTable orders={orders as any} />
       </div>
       <div className="flex items-center justify-between">
         <Button asChild>

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useDebouncedCallback } from 'use-debounce'
+import { Search, Filter } from 'lucide-react'
 
 export function OrdersToolbar() {
   const router = useRouter()
@@ -38,13 +39,14 @@ export function OrdersToolbar() {
   }
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
-      <div className="flex-1">
+    <div className="flex flex-col sm:flex-row gap-4 mb-6 items-center justify-between bg-card p-4 rounded-lg border border-border shadow-sm">
+      <div className="relative flex-1 w-full sm:max-w-md">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search orders..."
+          placeholder="Search orders by ID..."
           defaultValue={searchParams.get('search')?.toString()}
           onChange={(e) => handleSearch(e.target.value)}
-          className="max-w-sm"
+          className="pl-9 h-9 bg-muted/30 border-border focus:bg-background transition-colors"
         />
       </div>
       <div className="w-full sm:w-[200px]">
@@ -52,14 +54,19 @@ export function OrdersToolbar() {
           defaultValue={searchParams.get('status')?.toString() || 'all'}
           onValueChange={handleStatusFilter}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by status" />
+          <SelectTrigger className="h-9 bg-muted/30 border-border">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Filter className="h-3.5 w-3.5" />
+              <SelectValue placeholder="Filter by status" />
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
             <SelectItem value="in_progress">In Progress</SelectItem>
             <SelectItem value="delivered">Delivered</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="cancelled">Cancelled</SelectItem>
           </SelectContent>
         </Select>
       </div>

@@ -242,6 +242,7 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  email?: string | null;
   tenant: string | Tenant;
   updatedAt: string;
   createdAt: string;
@@ -475,6 +476,7 @@ export interface ConfigurationsSelect<T extends boolean = true> {
 export interface CustomersSelect<T extends boolean = true> {
   name?: T;
   phone?: T;
+  email?: T;
   tenant?: T;
   updatedAt?: T;
   createdAt?: T;

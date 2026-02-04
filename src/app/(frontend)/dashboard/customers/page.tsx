@@ -3,16 +3,9 @@ import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Users } from 'lucide-react'
+import { PlusCircle } from 'lucide-react'
+import { CustomersTable } from '@/components/dashboard/CustomersTable'
 
 export default async function CustomersPage() {
   const payload = await getPayload({ config: configPromise })
@@ -35,53 +28,21 @@ export default async function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead>Added On</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {customers.map((customer) => (
-              <TableRow key={customer.id}>
-                <TableCell className="font-medium">
-                  <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center mr-2">
-                      <Users className="h-4 w-4 text-slate-500" />
-                    </div>
-                    {customer.name}
-                  </div>
-                </TableCell>
-                <TableCell>{customer.phone}</TableCell>
-                <TableCell>{new Date(customer.createdAt).toLocaleDateString()}</TableCell>
-                <TableCell className="text-right">
-                  <span className="text-xs text-muted-foreground mr-4">
-                    View History (Coming Soon)
-                  </span>
-                </TableCell>
-              </TableRow>
-            ))}
-            {customers.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No customers found.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
       <div className="flex items-center justify-between">
-        <Button asChild>
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight font-heading">Customers</h2>
+          <p className="text-muted-foreground">Manage your customer base and view history.</p>
+        </div>
+        <Button asChild className="gap-2">
           <Link href="/dashboard/customers/new">
-            <PlusCircle className=" h-4 w-4" />
-            <span>Add Customer</span>
+            <PlusCircle className="h-4 w-4" />
+            Add Customer
           </Link>
         </Button>
+      </div>
+
+      <div className="rounded-lg border border-border bg-card">
+        <CustomersTable customers={customers as any} />
       </div>
     </div>
   )

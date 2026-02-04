@@ -4,7 +4,6 @@ import configPromise from '@payload-config'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import type { Tenant, User } from '@/payload-types'
-import Link from 'next/link'
 import '@/app/(frontend)/styles.css'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { Outfit, Inter } from 'next/font/google'
@@ -55,14 +54,21 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   // Fetch tenant branding if user has a tenant
   let branding: Tenant | null = null
   if (user.tenant) {
-    const tenant =
-      typeof user.tenant === 'object'
-        ? user.tenant
-        : await payload.findByID({
-            collection: 'tenants',
-            id: user.tenant as string,
-          })
-    branding = tenant
+    try {
+      const tenant =
+        typeof user.tenant === 'object'
+          ? user.tenant
+          : await payload.findByID({
+              collection: 'tenants',
+              id: user.tenant as string,
+            })
+      branding = tenant
+    } catch (e) {
+      console.error('Error fetching tenant:', e)
+      // If tenant is not found or other error, simply don't set branding
+      // This will fall through to the AppSidebar which handles receiving branding (or null)
+      // potentially we could force a "no shop assigned" view here if strictness is required
+    }
   }
 
   return (

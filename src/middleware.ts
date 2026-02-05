@@ -66,12 +66,19 @@ export async function middleware(request: NextRequest) {
     }
 
     try {
-      const secret = new TextEncoder().encode(PAYLOAD_SECRET)
+      // Payload uses a SHA-256 hashed secret (first 32 chars) for signing
+      const encoder = new TextEncoder()
+      const data = encoder.encode(PAYLOAD_SECRET)
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data)
+      const hashArray = Array.from(new Uint8Array(hashBuffer))
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
+      const secret = encoder.encode(hashHex.substring(0, 32))
+
       const { payload } = await jwtVerify(token, secret)
 
       // Safe logging for dev only
       if (process.env.NODE_ENV === 'development') {
-        console.log('Middleware Debug - Roles:', payload.roles)
+        // console.log('Middleware Debug - Roles:', payload.roles)
       }
 
       return (payload.roles as string[]) || []
@@ -79,11 +86,23 @@ export async function middleware(request: NextRequest) {
       // Log sanitized error
       const errorMessage = e instanceof Error ? e.message : 'Unknown error'
       console.error(`Middleware: JWT Verification Failed - ${errorMessage}`)
-      return null
+      return 'invalid'
     }
   }
 
-  const roles = token ? await getUserRole(token) : [] // returns string[] | null | []
+  const roleOrError = token ? await getUserRole(token) : []
+
+  // If verification explicitly failed, force a re-login to clear state
+  if (roleOrError === 'invalid') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    // Clear the cookie to prevent infinite loops (browser will overwrite)
+    const response = NextResponse.redirect(url)
+    response.cookies.delete('payload-token')
+    return response
+  }
+
+  const roles = Array.isArray(roleOrError) ? roleOrError : []
   const isAdmin = roles?.includes('admin')
 
   // PROTECT /admin

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 
-type ApiResponseOptions = {
+type ApiResponseOptions<T = null> = {
   status?: number
   message?: string
-  data?: any
+  data?: T | null
   error?: any
 }
 
@@ -11,12 +11,12 @@ type ApiResponseOptions = {
  * Standardized API response structure.
  * Wraps data in a consistent JSON format with success flag and timestamp.
  */
-export function apiResponse({
+export function apiResponse<T = null>({
   status = 200,
   message = 'Success',
   data = null,
   error = null,
-}: ApiResponseOptions) {
+}: ApiResponseOptions<T>) {
   return NextResponse.json(
     {
       success: status >= 200 && status < 300,
@@ -50,8 +50,8 @@ export function errorResponse(message: string, status = 400, error: any = null) 
  * @param message - Success message (default 'Success')
  * @param status - HTTP status code (default 200)
  */
-export function successResponse(data: any, message = 'Success', status = 200) {
-  return apiResponse({
+export function successResponse<T>(data: T, message = 'Success', status = 200) {
+  return apiResponse<T>({
     status,
     message,
     data,

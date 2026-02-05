@@ -74,6 +74,15 @@ export interface Config {
     customers: Customer;
     orders: Order;
     expenses: Expense;
+    products: Product;
+    warehouses: Warehouse;
+    suppliers: Supplier;
+    'stock-transactions': StockTransaction;
+    'production-runs': ProductionRun;
+    'job-cards': JobCard;
+    deliveries: Delivery;
+    'purchase-orders': PurchaseOrder;
+    payments: Payment;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -88,6 +97,15 @@ export interface Config {
     customers: CustomersSelect<false> | CustomersSelect<true>;
     orders: OrdersSelect<false> | OrdersSelect<true>;
     expenses: ExpensesSelect<false> | ExpensesSelect<true>;
+    products: ProductsSelect<false> | ProductsSelect<true>;
+    warehouses: WarehousesSelect<false> | WarehousesSelect<true>;
+    suppliers: SuppliersSelect<false> | SuppliersSelect<true>;
+    'stock-transactions': StockTransactionsSelect<false> | StockTransactionsSelect<true>;
+    'production-runs': ProductionRunsSelect<false> | ProductionRunsSelect<true>;
+    'job-cards': JobCardsSelect<false> | JobCardsSelect<true>;
+    deliveries: DeliveriesSelect<false> | DeliveriesSelect<true>;
+    'purchase-orders': PurchaseOrdersSelect<false> | PurchaseOrdersSelect<true>;
+    payments: PaymentsSelect<false> | PaymentsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -262,6 +280,27 @@ export interface Order {
   remainingPaid?: number | null;
   dueAmount?: number | null;
   status: 'pending' | 'in_progress' | 'delivered';
+  items: {
+    product: string | Product;
+    /**
+     * SKU or Name of the selected variant
+     */
+    variant?: string | null;
+    quantity: number;
+    price: number;
+    customizations?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    productionStatus?: ('pending' | 'in_production' | 'ready' | 'delivered') | null;
+    id?: string | null;
+  }[];
+  paymentStatus?: ('unpaid' | 'partial' | 'paid') | null;
   customFieldsData?:
     | {
         [k: string]: unknown;
@@ -277,6 +316,66 @@ export interface Order {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products".
+ */
+export interface Product {
+  id: string;
+  name: string;
+  slug?: string | null;
+  sku?: string | null;
+  type: 'finished_good' | 'raw_material' | 'service';
+  price?: number | null;
+  cost?: number | null;
+  unit?: string | null;
+  /**
+   * Auto-calculated sum of all warehouses
+   */
+  stock?: number | null;
+  warehouseStock?:
+    | {
+        warehouse: string | Warehouse;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  variants?:
+    | {
+        name: string;
+        sku?: string | null;
+        price?: number | null;
+        stock?: number | null;
+        id?: string | null;
+      }[]
+    | null;
+  bom?:
+    | {
+        material: string | Product;
+        quantity: number;
+        id?: string | null;
+      }[]
+    | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses".
+ */
+export interface Warehouse {
+  id: string;
+  name: string;
+  address?: string | null;
+  /**
+   * If true, this will be the default warehouse for new orders/products.
+   */
+  isDefault?: boolean | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "expenses".
  */
 export interface Expense {
@@ -285,6 +384,135 @@ export interface Expense {
   amount: number;
   date: string;
   description?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers".
+ */
+export interface Supplier {
+  id: string;
+  name: string;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  paymentTerms?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-transactions".
+ */
+export interface StockTransaction {
+  id: string;
+  date: string;
+  type: 'purchase_receive' | 'order_deduction' | 'manual_adjust' | 'return' | 'waste';
+  product: string | Product;
+  warehouse: string | Warehouse;
+  /**
+   * Positive for adding stock, negative for removing.
+   */
+  quantity: number;
+  reference?: string | null;
+  supplier?: (string | null) | Supplier;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "production-runs".
+ */
+export interface ProductionRun {
+  id: string;
+  order: string | Order;
+  orderItem: string;
+  product: string | Product;
+  status: 'planned' | 'in_progress' | 'quality_check' | 'completed';
+  stages?:
+    | {
+        stage: 'cutting' | 'assembly' | 'sanding' | 'upholstery' | 'qc';
+        status?: ('pending' | 'in_progress' | 'completed') | null;
+        completedAt?: string | null;
+        assignedTo?: (string | null) | User;
+        id?: string | null;
+      }[]
+    | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "job-cards".
+ */
+export interface JobCard {
+  id: string;
+  productionRun: string | ProductionRun;
+  stage: string;
+  worker: string | User;
+  status?: ('assigned' | 'in_progress' | 'done') | null;
+  notes?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "deliveries".
+ */
+export interface Delivery {
+  id: string;
+  order: string | Order;
+  status: 'pending' | 'in_transit' | 'delivered' | 'failed';
+  scheduledDate?: string | null;
+  driver?: (string | null) | User;
+  proofOfDelivery?: (string | null) | Media;
+  notes?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchase-orders".
+ */
+export interface PurchaseOrder {
+  id: string;
+  supplier: string | Supplier;
+  status: 'draft' | 'ordered' | 'received' | 'cancelled';
+  items: {
+    product: string | Product;
+    quantity: number;
+    unitCost?: number | null;
+    id?: string | null;
+  }[];
+  totalCost?: number | null;
+  expectedDeliveryDate?: string | null;
+  tenant: string | Tenant;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments".
+ */
+export interface Payment {
+  id: string;
+  order: string | Order;
+  amount: number;
+  method: 'cash' | 'jazzcash' | 'easypaisa' | 'bank_transfer';
+  /**
+   * Transaction ID or Receipt No.
+   */
+  reference?: string | null;
+  date: string;
+  status: 'pending' | 'completed' | 'failed';
   tenant: string | Tenant;
   updatedAt: string;
   createdAt: string;
@@ -340,6 +568,42 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'expenses';
         value: string | Expense;
+      } | null)
+    | ({
+        relationTo: 'products';
+        value: string | Product;
+      } | null)
+    | ({
+        relationTo: 'warehouses';
+        value: string | Warehouse;
+      } | null)
+    | ({
+        relationTo: 'suppliers';
+        value: string | Supplier;
+      } | null)
+    | ({
+        relationTo: 'stock-transactions';
+        value: string | StockTransaction;
+      } | null)
+    | ({
+        relationTo: 'production-runs';
+        value: string | ProductionRun;
+      } | null)
+    | ({
+        relationTo: 'job-cards';
+        value: string | JobCard;
+      } | null)
+    | ({
+        relationTo: 'deliveries';
+        value: string | Delivery;
+      } | null)
+    | ({
+        relationTo: 'purchase-orders';
+        value: string | PurchaseOrder;
+      } | null)
+    | ({
+        relationTo: 'payments';
+        value: string | Payment;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -495,6 +759,18 @@ export interface OrdersSelect<T extends boolean = true> {
   remainingPaid?: T;
   dueAmount?: T;
   status?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        variant?: T;
+        quantity?: T;
+        price?: T;
+        customizations?: T;
+        productionStatus?: T;
+        id?: T;
+      };
+  paymentStatus?: T;
   customFieldsData?: T;
   tenant?: T;
   updatedAt?: T;
@@ -509,6 +785,176 @@ export interface ExpensesSelect<T extends boolean = true> {
   amount?: T;
   date?: T;
   description?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "products_select".
+ */
+export interface ProductsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  sku?: T;
+  type?: T;
+  price?: T;
+  cost?: T;
+  unit?: T;
+  stock?: T;
+  warehouseStock?:
+    | T
+    | {
+        warehouse?: T;
+        quantity?: T;
+        id?: T;
+      };
+  variants?:
+    | T
+    | {
+        name?: T;
+        sku?: T;
+        price?: T;
+        stock?: T;
+        id?: T;
+      };
+  bom?:
+    | T
+    | {
+        material?: T;
+        quantity?: T;
+        id?: T;
+      };
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "warehouses_select".
+ */
+export interface WarehousesSelect<T extends boolean = true> {
+  name?: T;
+  address?: T;
+  isDefault?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "suppliers_select".
+ */
+export interface SuppliersSelect<T extends boolean = true> {
+  name?: T;
+  contactPerson?: T;
+  phone?: T;
+  email?: T;
+  address?: T;
+  paymentTerms?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stock-transactions_select".
+ */
+export interface StockTransactionsSelect<T extends boolean = true> {
+  date?: T;
+  type?: T;
+  product?: T;
+  warehouse?: T;
+  quantity?: T;
+  reference?: T;
+  supplier?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "production-runs_select".
+ */
+export interface ProductionRunsSelect<T extends boolean = true> {
+  order?: T;
+  orderItem?: T;
+  product?: T;
+  status?: T;
+  stages?:
+    | T
+    | {
+        stage?: T;
+        status?: T;
+        completedAt?: T;
+        assignedTo?: T;
+        id?: T;
+      };
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "job-cards_select".
+ */
+export interface JobCardsSelect<T extends boolean = true> {
+  productionRun?: T;
+  stage?: T;
+  worker?: T;
+  status?: T;
+  notes?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "deliveries_select".
+ */
+export interface DeliveriesSelect<T extends boolean = true> {
+  order?: T;
+  status?: T;
+  scheduledDate?: T;
+  driver?: T;
+  proofOfDelivery?: T;
+  notes?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "purchase-orders_select".
+ */
+export interface PurchaseOrdersSelect<T extends boolean = true> {
+  supplier?: T;
+  status?: T;
+  items?:
+    | T
+    | {
+        product?: T;
+        quantity?: T;
+        unitCost?: T;
+        id?: T;
+      };
+  totalCost?: T;
+  expectedDeliveryDate?: T;
+  tenant?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payments_select".
+ */
+export interface PaymentsSelect<T extends boolean = true> {
+  order?: T;
+  amount?: T;
+  method?: T;
+  reference?: T;
+  date?: T;
+  status?: T;
   tenant?: T;
   updatedAt?: T;
   createdAt?: T;

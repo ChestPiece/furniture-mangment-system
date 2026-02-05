@@ -112,6 +112,76 @@ export const Orders: CollectionConfig = {
       index: true,
     },
     {
+      name: 'items',
+      type: 'array',
+      required: true,
+      fields: [
+        {
+          name: 'product',
+          type: 'relationship',
+          relationTo: 'products',
+          required: true,
+          filterOptions: ({ req: { user } }) => {
+            if (user?.tenant) {
+              return {
+                and: [
+                  { tenant: { equals: extractTenantId(user.tenant) } },
+                  { type: { equals: 'finished_good' } },
+                ],
+              } as any
+            }
+            return { type: { equals: 'finished_good' } }
+          },
+        },
+        {
+          name: 'variant', // Store SKU or Variant Name? Let's store SKU for precision if possible, or object
+          type: 'text',
+          admin: { description: 'SKU or Name of the selected variant' },
+        },
+        {
+          name: 'quantity',
+          type: 'number',
+          required: true,
+          min: 1,
+          defaultValue: 1,
+        },
+        {
+          name: 'price',
+          type: 'number',
+          required: true,
+          min: 0,
+        },
+        {
+          name: 'customizations',
+          type: 'json',
+        },
+        {
+          name: 'productionStatus',
+          type: 'select',
+          options: [
+            { label: 'Pending', value: 'pending' },
+            { label: 'In Production', value: 'in_production' },
+            { label: 'Ready for Delivery', value: 'ready' },
+            { label: 'Delivered', value: 'delivered' },
+          ],
+          defaultValue: 'pending',
+        },
+      ],
+    },
+    {
+      name: 'paymentStatus',
+      type: 'select',
+      options: [
+        { label: 'Unpaid', value: 'unpaid' },
+        { label: 'Partial', value: 'partial' },
+        { label: 'Paid', value: 'paid' },
+      ],
+      defaultValue: 'unpaid',
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
       name: 'customFieldsData',
       type: 'json', // Stores dynamic fields defined in configuration
     },

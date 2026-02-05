@@ -83,25 +83,22 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  const roles = token ? await getUserRole(token) : []
+  const roles = token ? await getUserRole(token) : [] // returns string[] | null | []
   const isAdmin = roles?.includes('admin')
 
   // PROTECT /admin
   if (pathname.startsWith('/admin')) {
     // Strict Admin Hiding: If user is logged in but NOT an admin,
     // we want them to think this page doesn't exist.
-    if (token && !isAdmin) {
+
+    // CHANGE: Only block if we successfully retrieved roles and confirmed 'admin' is missing.
+    // If roles is null (verification failed), we let it pass to Payload to handle.
+    if (token && roles !== null && !isAdmin) {
       // Rewrite to a non-existent path to trigger a 404
       return NextResponse.rewrite(new URL('/404', request.url))
     }
 
     // If not logged in, Payload handles the route.
-    // Ideally, for strict hiding, we might even want to hide login if not admin?
-    // But Payload handles /admin login.
-    // The requirement is "admin access to be totally hidden the shop user should not be having any knowledge".
-    // If a shop user goes to /admin and is logged out, they see the login screen.
-    // If they log in there with shop credentials, Payload might reject or redirect.
-    // But if they are *already* logged in as shop user (token exists), they get 404.
   }
 
   // PROTECT /dashboard

@@ -1,5 +1,5 @@
 import { Access } from 'payload'
-import { extractTenantId } from '../lib/tenant-utils'
+import { extractTenantId } from '@/lib/tenant-utils'
 
 /**
  * Access control ensuring only admins or the specific tenant owner can access.

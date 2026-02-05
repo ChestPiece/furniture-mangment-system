@@ -1,5 +1,5 @@
 import { CollectionConfig } from 'payload'
-import { tenantAdmins, tenantSelfAccess, tenantUsers } from '../access/tenantIsolation'
+import { tenantSelfAccess } from '@/access/tenantIsolation'
 
 export const Tenants: CollectionConfig = {
   slug: 'tenants',

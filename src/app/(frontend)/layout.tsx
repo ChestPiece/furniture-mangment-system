@@ -7,6 +7,7 @@ import type { Tenant, User } from '@/payload-types'
 import '@/app/(frontend)/styles.css'
 import { AppSidebar } from '@/components/layout/AppSidebar'
 import { Outfit, Inter } from 'next/font/google'
+import { Toaster } from 'sonner'
 
 const outfit = Outfit({
   subsets: ['latin'],
@@ -88,6 +89,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
             </div>
           </main>
         </div>
+        <Toaster />
       </body>
     </html>
   )

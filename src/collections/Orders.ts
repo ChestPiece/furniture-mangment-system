@@ -1,7 +1,16 @@
 import { CollectionConfig } from 'payload'
-import { tenantFilter } from '../access/tenantIsolation'
-import { extractTenantId } from '../lib/tenant-utils'
+import { tenantFilter } from '@/access/tenantIsolation'
+import { extractTenantId } from '@/lib/tenant-utils'
 
+/**
+ * Orders Collection
+ *
+ * Manages customer orders including status tracking, financial details, and custom fields.
+ * Includes tenant isolation and validation for payment amounts.
+ *
+ * @property {string} status - Indexed for performance. Options: pending, in_progress, delivered.
+ * @property {number} dueAmount - Virtual field calculated from totalAmount - paid amounts.
+ */
 export const Orders: CollectionConfig = {
   slug: 'orders',
   admin: {
@@ -100,6 +109,7 @@ export const Orders: CollectionConfig = {
       ],
       defaultValue: 'pending',
       required: true,
+      index: true,
     },
     {
       name: 'customFieldsData',

@@ -18,6 +18,8 @@ import { ShoppingBag, DollarSign, AlertCircle, Calendar } from 'lucide-react'
 import { ReportsSkeleton } from '@/components/dashboard/ReportsSkeleton'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 
+export const dynamic = 'force-dynamic'
+
 export default function ReportsPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [dailyStats, setDailyStats] = useState<any>(null)

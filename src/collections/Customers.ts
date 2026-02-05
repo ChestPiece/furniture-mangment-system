@@ -1,6 +1,6 @@
 import { CollectionConfig } from 'payload'
-import { tenantFilter } from '../access/tenantIsolation'
-import { extractTenantId } from '../lib/tenant-utils'
+import { tenantFilter } from '@/access/tenantIsolation'
+import { extractTenantId } from '@/lib/tenant-utils'
 
 export const Customers: CollectionConfig = {
   slug: 'customers',
@@ -32,7 +32,7 @@ export const Customers: CollectionConfig = {
       type: 'text',
       required: true,
       index: true,
-      validate: (val: any) => {
+      validate: (val: unknown) => {
         // Allow +, spaces, dashes, parentheses and numbers
         if (typeof val !== 'string') return 'Invalid phone number format'
         if (!/^\+?[\d\s-()]+$/.test(val)) {

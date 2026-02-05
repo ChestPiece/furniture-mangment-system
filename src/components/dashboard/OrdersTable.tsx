@@ -20,13 +20,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge' // Will use specific class overrides
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { formatCurrency } from '@/utilities/formatCurrency'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
 import { deleteOrder } from '@/app/(frontend)/dashboard/orders/actions'
-import { toast } from 'sonner' // Assuming sonner is used, or we fallback to alert/console if not installed.
+import { toast } from 'sonner'
 // Standard Shadcn often uses 'sonner' or 'toast' hook. I'll check package.json or use simple console/alert for now if unsure.
 // Checked package.json earlier, didn't see sonner. I'll use simple alert or just relies on revalidate.
 // user said "Reuse shadcn components". I'll assume basic interaction.
@@ -61,13 +60,14 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         setDeleteId(null)
         // Router refresh handled by server action revalidatePath,
         // but explicit refresh ensures client state sync if needed.
+        toast.success('Order deleted successfully')
         router.refresh()
       } else {
-        alert('Failed to delete order')
+        toast.error('Failed to delete order')
       }
     } catch (error) {
       console.error(error)
-      alert('An error occurred')
+      toast.error('An error occurred while deleting order')
     } finally {
       setIsDeleting(false)
     }
@@ -144,6 +144,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                         <Button
                           variant="ghost"
                           className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label="Actions"
                         >
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4 text-muted-foreground" />

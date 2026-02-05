@@ -1,6 +1,6 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, Where } from 'payload'
 
-import { extractTenantId } from '../lib/tenant-utils'
+import { extractTenantId } from '@/lib/tenant-utils'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -21,14 +21,14 @@ export const Users: CollectionConfig = {
           tenant: {
             equals: tenantId,
           },
-        }
+        } as Where
       }
       // Users can read themselves
       return {
         id: {
           equals: user.id,
         },
-      } as any
+      } as Where
     },
     create: ({ req: { user } }) => {
       // Only admins or owners can create users
@@ -47,25 +47,56 @@ export const Users: CollectionConfig = {
           tenant: {
             equals: tenantId,
           },
-        } as any
+        } as Where
       }
       // Users can update themselves
       return {
         id: {
           equals: user.id,
         },
-      } as any
+      } as Where
     },
     delete: ({ req: { user } }) => {
       if (!user) return false
-      if (user.roles?.includes('admin')) return true
+
+      const godAdminEmail = process.env.GOD_ADMIN_EMAIL
+
+      if (user.roles?.includes('admin')) {
+        if (godAdminEmail) {
+          return {
+            email: {
+              not_equals: godAdminEmail,
+            },
+          } as Where
+        }
+        return true
+      }
+
       if (user.roles?.includes('owner')) {
         const tenantId = extractTenantId(user.tenant)
+        // Owners also cannot delete God Admin (redundant if they can't even see/manage admins, but safe)
+        if (godAdminEmail) {
+          return {
+            and: [
+              {
+                tenant: {
+                  equals: tenantId,
+                },
+              },
+              {
+                email: {
+                  not_equals: godAdminEmail,
+                },
+              },
+            ],
+          } as Where
+        }
+
         return {
           tenant: {
             equals: tenantId,
           },
-        }
+        } as Where
       }
       return false
     },

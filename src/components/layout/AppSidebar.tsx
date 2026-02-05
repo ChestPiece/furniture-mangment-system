@@ -13,6 +13,7 @@ import {
   ChevronRight,
   Menu,
 } from 'lucide-react'
+import { logout } from '@/app/(auth)/actions'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -130,18 +131,30 @@ export function AppSidebar({ user, branding }: SidebarProps) {
             </div>
           )}
           {!collapsed && (
-            <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-              <Link href="/admin/logout" title="Logout">
+            <form action={logout} className="flex-shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
                 <LogOut className="h-4 w-4" />
-              </Link>
-            </Button>
+                <span className="sr-only">Logout</span>
+              </Button>
+            </form>
           )}
         </div>
         {collapsed && (
           <div className="mt-2 flex justify-center">
-            <Link href="/admin/logout" title="Logout">
-              <LogOut className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-            </Link>
+            <form action={logout}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="sr-only">Logout</span>
+              </Button>
+            </form>
           </div>
         )}
       </div>

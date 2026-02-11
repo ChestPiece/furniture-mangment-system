@@ -7,6 +7,7 @@ import { PlusCircle, ShoppingCart } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { ErrorState } from '@/components/ui/ErrorState'
 
 export default async function PurchaseOrdersPage() {
   const payload = await getPayload({ config: configPromise })
@@ -15,13 +16,12 @@ export default async function PurchaseOrdersPage() {
 
   if (!user || !user.tenant) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-        <h3 className="text-lg font-medium">Unauthorized Access</h3>
-        <p className="mb-4">You must be logged in to view purchase orders.</p>
-        <Button asChild>
-          <Link href="/login">Login</Link>
-        </Button>
-      </div>
+      <ErrorState
+        title="Unauthorized Access"
+        message="You must be logged in and associated with a shop to view purchase orders."
+        actionLabel="Return to Dashboard"
+        actionUrl="/dashboard"
+      />
     )
   }
 
@@ -49,7 +49,7 @@ export default async function PurchaseOrdersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Purchase Orders</h1>

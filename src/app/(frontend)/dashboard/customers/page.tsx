@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { PlusCircle } from 'lucide-react'
 import { CustomersTable } from '@/components/dashboard/CustomersTable'
+import { ErrorState } from '@/components/ui/ErrorState'
 
 export default async function CustomersPage() {
   const payload = await getPayload({ config: configPromise })
@@ -13,7 +14,14 @@ export default async function CustomersPage() {
   const { user } = await payload.auth({ headers: headersList })
 
   if (!user || !user.tenant) {
-    return <div>Unauthorized</div>
+    return (
+      <ErrorState
+        title="Unauthorized Access"
+        message="You must be logged in and associated with a shop to view customers."
+        actionLabel="Return to Dashboard"
+        actionUrl="/dashboard"
+      />
+    )
   }
 
   const { docs: customers } = await payload.find({
@@ -27,7 +35,7 @@ export default async function CustomersPage() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight font-heading">Customers</h2>

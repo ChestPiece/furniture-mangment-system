@@ -64,7 +64,9 @@ export default async function FinancePage({
               <Wallet className="h-8 w-8 opacity-50" />
             </div>
             <h3 className="text-lg font-medium mb-1">No financial records</h3>
-            <p className="max-w-xs mx-auto mb-4">Track your shop's expenses and income here.</p>
+            <p className="max-w-xs mx-auto mb-4">
+              Track your shop&apos;s expenses and income here.
+            </p>
             <Button variant="outline" asChild>
               <Link href="/dashboard/finance/new">Record Expense</Link>
             </Button>

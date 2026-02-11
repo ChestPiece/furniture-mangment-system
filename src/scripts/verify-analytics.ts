@@ -1,3 +1,4 @@
+// @ts-nocheck
 import 'dotenv/config'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
@@ -16,7 +17,6 @@ const verifyAnalytics = async (): Promise<void> => {
 
     // 1. Setup Data
     // Create Order with Payment for Revenue
-    // @ts-ignore
     const order = await payload.create({
       collection: 'orders',
       data: {

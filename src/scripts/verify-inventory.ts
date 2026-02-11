@@ -1,3 +1,4 @@
+// @ts-nocheck
 import 'dotenv/config'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
@@ -51,7 +52,7 @@ const verifyInventory = async (): Promise<void> => {
         type: 'raw_material',
         price: 100,
         cost: 50,
-        tenant: tenant.id,
+        tenant: tenant.id as string,
       },
       overrideAccess: true,
     })

@@ -93,8 +93,7 @@ const verifyInventory = async (): Promise<void> => {
 
     // Verify Warehouse Stock
     const whStock = updatedProduct.warehouseStock?.find(
-      (ws: any) =>
-        (typeof ws.warehouse === 'string' ? ws.warehouse : ws.warehouse.id) === warehouse.id,
+      (ws) => (typeof ws.warehouse === 'string' ? ws.warehouse : ws.warehouse?.id) === warehouse.id,
     )
     if (!whStock || whStock.quantity !== 100) {
       throw new Error(`Warehouse Stock mismatch! Expected 100, got ${whStock?.quantity}`)

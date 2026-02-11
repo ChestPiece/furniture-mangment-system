@@ -63,7 +63,7 @@ const verifyProduction = async (): Promise<void> => {
     })
 
     // 2. Create Order
-    // @ts-ignore
+    // @ts-expect-error Payload types might be mismatching with the detailed data structure here
     const order = await payload.create({
       collection: 'orders',
       data: {

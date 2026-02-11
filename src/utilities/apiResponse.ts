@@ -4,7 +4,7 @@ type ApiResponseOptions<T = null> = {
   status?: number
   message?: string
   data?: T | null
-  error?: any
+  error?: unknown
 }
 
 /**
@@ -35,7 +35,7 @@ export function apiResponse<T = null>({
  * @param status - HTTP status code (default 400)
  * @param error - Optional error details
  */
-export function errorResponse(message: string, status = 400, error: any = null) {
+export function errorResponse(message: string, status = 400, error: unknown = null) {
   return apiResponse({
     status,
     message,

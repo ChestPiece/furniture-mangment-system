@@ -10,7 +10,7 @@ export const startProductionRun = async ({
   payload,
   productionRunId,
   tenantId,
-  actorId, // User ID who started it
+  // actorId, // User ID who started it - UNUSED for now
 }: {
   payload: Payload
   productionRunId: string
@@ -50,6 +50,7 @@ export const startProductionRun = async ({
             ? await payload.findByID({ collection: 'orders', id: productionRun.order })
             : productionRun.order
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const item = order.items?.find((i: any) => i.id === productionRun.orderItem)
         if (item) quantityToMake = item.quantity
       }

@@ -102,25 +102,60 @@ export const createTenantRelationshipField = (
 /**
  * Factory: Create customer relationship field
  */
-export const createCustomerField = (required = true): RelationshipField =>
-  createTenantRelationshipField({
-    relationTo: COLLECTION_SLUGS.CUSTOMERS,
-    required,
-    index: true,
-  })
+export const createCustomerField = (required = true): RelationshipField => ({
+  name: 'customer',
+  type: 'relationship',
+  relationTo: COLLECTION_SLUGS.CUSTOMERS,
+  required,
+  index: true,
+  filterOptions: ({ req }: FilterOptionsProps) => {
+    const { user } = req
+    if (!user) return false
+
+    if (user.roles?.includes(USER_ROLES.ADMIN)) {
+      return true
+    }
+
+    const tenantId = extractTenantId(user.tenant)
+    if (tenantId) {
+      return {
+        tenant: { equals: tenantId },
+      } as Where
+    }
+
+    return false
+  },
+})
 
 /**
  * Factory: Create product relationship field
  */
-export const createProductField = (required = true): RelationshipField =>
-  createTenantRelationshipField({
-    relationTo: COLLECTION_SLUGS.PRODUCTS,
-    required,
-    index: true,
-    filterOptions: {
+export const createProductField = (required = true): RelationshipField => ({
+  name: 'product',
+  type: 'relationship',
+  relationTo: COLLECTION_SLUGS.PRODUCTS,
+  required,
+  index: true,
+  filterOptions: ({ req }: FilterOptionsProps) => {
+    const { user } = req
+    if (!user) return false
+
+    const baseFilter: Record<string, unknown> = {
       type: { equals: 'finished_good' },
-    },
-  })
+    }
+
+    if (user.roles?.includes(USER_ROLES.ADMIN)) {
+      return baseFilter as Where
+    }
+
+    const tenantId = extractTenantId(user.tenant)
+    if (tenantId) {
+      baseFilter.tenant = { equals: tenantId }
+    }
+
+    return baseFilter as Where
+  },
+})
 
 /**
  * Factory: Create a date field with default value

@@ -150,6 +150,9 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: string;
+  /**
+   * Display name for the user
+   */
   name?: string | null;
   roles: ('admin' | 'owner' | 'staff')[];
   tenant?: (string | null) | Tenant;
@@ -266,6 +269,8 @@ export interface Customer {
   createdAt: string;
 }
 /**
+ * Customer orders with payment tracking and production status
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "orders".
  */
@@ -275,8 +280,17 @@ export interface Order {
   type: 'ready-made' | 'custom';
   orderDate: string;
   deliveryDate?: string | null;
+  /**
+   * Amount in PKR
+   */
   totalAmount: number;
-  advancePaid: number;
+  /**
+   * Amount in PKR
+   */
+  advancePaid?: number | null;
+  /**
+   * Amount in PKR
+   */
   remainingPaid?: number | null;
   dueAmount?: number | null;
   status: 'pending' | 'in_progress' | 'delivered';
@@ -287,6 +301,9 @@ export interface Order {
      */
     variant?: string | null;
     quantity: number;
+    /**
+     * Amount in PKR
+     */
     price: number;
     customizations?:
       | {
@@ -301,6 +318,9 @@ export interface Order {
     id?: string | null;
   }[];
   paymentStatus?: ('unpaid' | 'partial' | 'paid') | null;
+  /**
+   * Stores dynamic fields defined in configuration
+   */
   customFieldsData?:
     | {
         [k: string]: unknown;
@@ -315,22 +335,36 @@ export interface Order {
   createdAt: string;
 }
 /**
+ * Product catalog with inventory tracking
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "products".
  */
 export interface Product {
   id: string;
   name: string;
+  /**
+   * Auto-generated from name
+   */
   slug?: string | null;
+  /**
+   * Stock Keeping Unit - unique identifier
+   */
   sku?: string | null;
   type: 'finished_good' | 'raw_material' | 'service';
   price?: number | null;
   cost?: number | null;
+  /**
+   * e.g., pcs, feet, kg, meters
+   */
   unit?: string | null;
   /**
    * Auto-calculated sum of all warehouses
    */
   stock?: number | null;
+  /**
+   * Managed via stock transactions
+   */
   warehouseStock?:
     | {
         warehouse: string | Warehouse;
@@ -338,6 +372,9 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Product variations (size, color, etc.)
+   */
   variants?:
     | {
         name: string;
@@ -347,6 +384,9 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  /**
+   * Raw materials required to manufacture this product
+   */
   bom?:
     | {
         material: string | Product;
@@ -354,6 +394,7 @@ export interface Product {
         id?: string | null;
       }[]
     | null;
+  description?: string | null;
   tenant: string | Tenant;
   updatedAt: string;
   createdAt: string;
@@ -825,6 +866,7 @@ export interface ProductsSelect<T extends boolean = true> {
         quantity?: T;
         id?: T;
       };
+  description?: T;
   tenant?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { tenantIsolatedRelaxedAccess } from '@/access/presets'
 import { createTenantManagementHook } from '@/lib/tenant/hooks'
+import { createTenantField } from '@/fields/factories'
 import { orderFields } from '@/fields/common/order'
 import { BUSINESS_ERROR_MESSAGES } from '@/constants/messages'
 
@@ -27,7 +28,10 @@ export const Orders: CollectionConfig = {
 
   access: tenantIsolatedRelaxedAccess,
 
-  fields: orderFields,
+  fields: [
+    ...orderFields,
+    createTenantField(),
+  ],
 
   hooks: {
     beforeChange: [

@@ -1,14 +1,24 @@
-import { Access } from 'payload'
-import { extractTenantId } from '@/lib/tenant-utils'
+// ============================================
+// Tenant Isolation Access Control
+// ============================================
+// Note: This file is kept for backward compatibility.
+// New code should import from '@/access' directly.
+
+import type { Access } from 'payload'
+import { extractTenantId } from '@/lib/tenant'
+
+// Re-export from new structure for compatibility
+export { extractTenantId } from '@/lib/tenant'
+export { tenantFilter } from '@/access/factories'
 
 /**
  * Access control ensuring only admins or the specific tenant owner can access.
  * Used for Collections like Tenants.
+ * @deprecated Use tenantAdmins from '@/access/presets' instead
  */
 export const tenantAdmins: Access = ({ req: { user } }) => {
   if (user?.roles?.includes('admin')) return true
 
-  // Allow owners to manage their own tenant settings
   if (user?.roles?.includes('owner')) {
     const tenantId = extractTenantId(user.tenant)
     return {
@@ -24,6 +34,7 @@ export const tenantAdmins: Access = ({ req: { user } }) => {
 /**
  * Access control ensuring users can only access documents belonging to their tenant.
  * Admins have full access.
+ * @deprecated Use tenantUsers from '@/access/presets' instead
  */
 export const tenantUsers: Access = ({ req: { user } }) => {
   if (user?.roles?.includes('admin')) return true
@@ -40,35 +51,10 @@ export const tenantUsers: Access = ({ req: { user } }) => {
   return false
 }
 
-import { PayloadRequest } from 'payload'
-
-/**
- * Reusable filter for Payload queries to enforce tenant isolation.
- * @param {Object} context - The context object containing the request
- * @returns {Object|boolean} - Returns a query filter object or boolean true/false
- */
-export const tenantFilter = ({ req: { user } }: { req: PayloadRequest }) => {
-  if (user?.roles?.includes('admin')) return true
-
-  if (user?.tenant) {
-    const tenantId = extractTenantId(user.tenant)
-    return {
-      tenant: {
-        equals: tenantId,
-      },
-    }
-  }
-
-  return {
-    tenant: {
-      exists: false, // Or some impossible condition to prevent access
-    },
-  }
-}
-
 /**
  * Access control specifically for the Tenants collection itself.
  * Filters by the ID of the tenant the user belongs to.
+ * @deprecated Use tenantSelfAccess from '@/access/presets' instead
  */
 export const tenantSelfAccess: Access = ({ req: { user } }) => {
   if (user?.roles?.includes('admin')) return true

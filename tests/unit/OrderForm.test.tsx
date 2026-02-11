@@ -20,8 +20,8 @@ vi.mock('next/navigation', () => ({
 global.fetch = vi.fn()
 
 const mockCustomers: Customer[] = [
-  { id: 'cust1', name: 'John Doe', phone: '1234567890', updatedAt: '', createdAt: '' },
-  { id: 'cust2', name: 'Jane Smith', phone: '0987654321', updatedAt: '', createdAt: '' },
+  { id: 'cust1', name: 'John Doe', phone: '1234567890', tenant: 'tenant1', updatedAt: '', createdAt: '' },
+  { id: 'cust2', name: 'Jane Smith', phone: '0987654321', tenant: 'tenant1', updatedAt: '', createdAt: '' },
 ]
 
 const mockConfig: Configuration = {
@@ -30,6 +30,7 @@ const mockConfig: Configuration = {
     { name: 'notes', label: 'Notes', type: 'text' },
     { name: 'priority', label: 'Priority', type: 'text' },
   ],
+  tenant: 'tenant1',
   updatedAt: '',
   createdAt: '',
 }

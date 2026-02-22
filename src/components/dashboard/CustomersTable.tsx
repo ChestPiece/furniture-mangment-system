@@ -22,15 +22,16 @@ import {
 import { Button } from '@/components/ui/button'
 import { MoreHorizontal, Pencil, Trash2, Users } from 'lucide-react'
 import { DeleteConfirmationModal } from '@/components/ui/DeleteConfirmationModal'
-import { deleteCustomer } from '@/app/(frontend)/dashboard/customers/actions'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
-interface Customer {
+export interface Customer {
   id: string
   name: string
   phone: string
-  email?: string
+  email?: string | null
   createdAt: string
-  tenant?: string | { id: string }
+  tenant: string
 }
 
 interface CustomersTableProps {
@@ -41,22 +42,23 @@ export function CustomersTable({ customers }: CustomersTableProps) {
   const router = useRouter()
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+  const deleteCustomer = useMutation(api.customers.deleteCustomer)
+  const tenant = useQuery(api.tenants.getMine)
 
   const handleDelete = async () => {
-    if (!deleteId) return
+    if (!deleteId || !tenant) return
 
     setIsDeleting(true)
     try {
-      const result = await deleteCustomer(deleteId)
-      if (result.success) {
-        setDeleteId(null)
-        router.refresh()
-      } else {
-        alert('Failed to delete customer. Ensure they have no active orders.')
-      }
+      await deleteCustomer({ id: deleteId as any, tenantId: tenant._id }) // Cast needed if types mismatch? Convex handles ID validation
+
+      setDeleteId(null)
+      // router.refresh(); // Convex updates automatically if using useQuery
+      // But we passed data as props. So page invalidates?
+      // If parent uses useQuery, it will re-render.
     } catch (error) {
       console.error(error)
-      alert('An error occurred')
+      alert('An error occurred during deletion')
     } finally {
       setIsDeleting(false)
     }

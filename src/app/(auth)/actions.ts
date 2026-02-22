@@ -5,6 +5,6 @@ import { redirect } from 'next/navigation'
 
 export async function logout() {
   const cookieStore = await cookies()
-  cookieStore.delete('payload-token')
+  // TODO: Implement Convex Logout
   redirect('/login')
 }

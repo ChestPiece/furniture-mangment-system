@@ -35,6 +35,8 @@ export async function deleteOrder(id: string) {
           },
         ],
       },
+      overrideAccess: false,
+      user,
     })
     revalidatePath('/dashboard/orders')
     return { success: true }

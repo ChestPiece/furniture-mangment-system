@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
@@ -14,43 +14,31 @@ import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { formatCurrency } from '@/utilities/formatCurrency'
 import { StatsCard } from '@/components/dashboard/StatsCard'
-import { ShoppingBag, DollarSign, AlertCircle, Calendar } from 'lucide-react'
-import { ReportsSkeleton } from '@/components/dashboard/ReportsSkeleton'
+import { ShoppingBag, DollarSign, AlertCircle, Calendar, Loader2 } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/StatusBadge'
-
-export const dynamic = 'force-dynamic'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
 export default function ReportsPage() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [dailyStats, setDailyStats] = useState<any>(null)
-  const [pendingStats, setPendingStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchReports = async () => {
-      setLoading(true)
-      try {
-        const [salesRes, pendingRes] = await Promise.all([
-          fetch(`/api/reports/daily-sales?date=${date}`),
-          fetch(`/api/reports/pending-payments`),
-        ])
+  const tenant = useQuery(api.tenants.getMine)
 
-        const salesData = await salesRes.json()
-        const pendingData = await pendingRes.json()
+  const dailyStats = useQuery(
+    api.reports.dailySales,
+    tenant ? { tenantId: tenant._id, date } : 'skip',
+  )
+  const pendingStats = useQuery(
+    api.reports.pendingPayments,
+    tenant ? { tenantId: tenant._id } : 'skip',
+  )
 
-        setDailyStats(salesData)
-        setPendingStats(pendingData)
-      } catch (err) {
-        console.error('Failed to fetch reports', err)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchReports()
-  }, [date])
-
-  if (loading) {
-    return <ReportsSkeleton />
+  if (!dailyStats || !pendingStats) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
   }
 
   return (

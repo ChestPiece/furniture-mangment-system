@@ -2,21 +2,19 @@
 // Furniture Management System - Shared Types
 // ============================================
 
-import type {
-  Field,
-  FieldAccess,
-  PayloadRequest,
-  Where,
-  User,
-  CollectionBeforeChangeHook,
-} from 'payload'
-
 // Re-export all constants as types
 export type * from '@/constants'
 
 // ============================================
 // Access Control Types
 // ============================================
+
+export interface User {
+  id: string
+  email: string
+  roles?: string[]
+  tenant?: string | { id: string }
+}
 
 /**
  * Extended user type with tenant information
@@ -25,115 +23,6 @@ export interface TenantUser extends User {
   tenant?: string | { id: string }
   roles?: string[]
 }
-
-/**
- * Context object for access control functions
- */
-export interface AccessContext {
-  req: PayloadRequest
-  id?: string | number
-}
-
-/**
- * Role checker function type
- */
-export type RoleChecker = (user: TenantUser | null) => boolean
-
-/**
- * Access filter result type
- */
-export type AccessFilter = boolean | Where
-
-// ============================================
-// Field Factory Types
-// ============================================
-
-/**
- * Options for creating a tenant relationship field
- */
-export interface TenantFieldOptions {
-  /** Whether the field is required (default: true) */
-  required?: boolean
-  /** Whether to hide in admin UI (default: true) */
-  hidden?: boolean
-  /** Custom access configuration */
-  access?: FieldAccess
-}
-
-/**
- * Options for creating a status field
- */
-export interface StatusFieldOptions {
-  /** Available status options */
-  options: Array<{ label: string; value: string }>
-  /** Default status value */
-  defaultValue: string
-  /** Whether the field is required (default: true) */
-  required?: boolean
-  /** Whether to index the field (default: true) */
-  index?: boolean
-}
-
-/**
- * Options for creating a relationship field with tenant filtering
- */
-export interface TenantRelationshipOptions {
-  /** Target collection slug */
-  relationTo: string
-  /** Whether the field is required */
-  required?: boolean
-  /** Whether to index the field */
-  index?: boolean
-  /** Additional filter options beyond tenant */
-  filterOptions?: Record<string, unknown>
-}
-
-// ============================================
-// Collection Factory Types
-// ============================================
-
-/**
- * Options for creating a tenant-isolated collection
- */
-export interface TenantCollectionOptions {
-  /** Collection slug */
-  slug: string
-  /** Collection fields (tenant field auto-added) */
-  fields: Field[]
-  /** Admin configuration */
-  admin?: {
-    useAsTitle?: string
-    defaultColumns?: string[]
-    description?: string
-  }
-  /** Custom hooks (tenant hooks auto-added) */
-  hooks?: {
-    beforeChange?: CollectionBeforeChangeHook[]
-    afterChange?: unknown[]
-    beforeRead?: unknown[]
-    afterRead?: unknown[]
-    beforeDelete?: unknown[]
-    afterDelete?: unknown[]
-  }
-  /** Enable timestamps */
-  timestamps?: boolean
-}
-
-// ============================================
-// Hook Types
-// ============================================
-
-/**
- * Tenant extraction function type
- */
-export type TenantExtractor = (
-  tenant: string | { id: string } | undefined | null,
-) => string | undefined
-
-/**
- * BeforeChange hook with tenant support
- */
-export type TenantBeforeChangeHook = CollectionBeforeChangeHook
 
 // ============================================
 // API Response Types

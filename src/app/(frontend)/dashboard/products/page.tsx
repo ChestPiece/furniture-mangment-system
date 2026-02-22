@@ -1,57 +1,24 @@
-import Link from 'next/link'
+'use client'
+
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
+import Link from 'next/link'
+import { PlusCircle, Package, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { PlusCircle, Package } from 'lucide-react'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { Pagination } from '@/components/ui/Pagination'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const payload = await getPayload({ config: configPromise })
-  const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
+export default function ProductsPage() {
+  const tenant = useQuery(api.tenants.getMine)
+  // Assuming list returns all products. Pagination to be added if needed or use pagination in Convex.
+  const products = useQuery(api.products.list, tenant ? { tenantId: tenant._id } : 'skip')
 
-  if (!user || !user.tenant) {
+  if (products === undefined) {
     return (
-      <ErrorState
-        title="Unauthorized Access"
-        message="You must be logged in and associated with a shop to view products."
-        actionLabel="Return to Dashboard"
-        actionUrl="/dashboard"
-      />
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin" />
+      </div>
     )
   }
-
-  const resolvedParams = await searchParams
-  const page = typeof resolvedParams.page === 'string' ? Number(resolvedParams.page) : 1
-  const search = typeof resolvedParams.search === 'string' ? resolvedParams.search : undefined
-
-  const query: any = {
-    tenant: {
-      equals: user.tenant,
-    },
-  }
-
-  if (search) {
-    query.name = {
-      contains: search,
-    }
-  }
-
-  const { docs: products, totalPages } = await payload.find({
-    collection: 'products',
-    where: query,
-    sort: 'name',
-    depth: 1,
-    limit: 10,
-    page,
-  })
 
   return (
     <div className="space-y-6">
@@ -101,7 +68,7 @@ export default async function ProductsPage({
               <tbody className="[&_tr:last-child]:border-0">
                 {products.map((product: any) => (
                   <tr
-                    key={product.id}
+                    key={product._id}
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     <td className="p-4 align-middle font-medium">{product.name}</td>
@@ -115,8 +82,6 @@ export default async function ProductsPage({
           </div>
         )}
       </div>
-
-      <Pagination totalPages={totalPages} />
     </div>
   )
 }

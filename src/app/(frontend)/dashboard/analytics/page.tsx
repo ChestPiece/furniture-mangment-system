@@ -1,29 +1,9 @@
+'use client'
+
 import React from 'react'
-import { getDashboardStats } from '@/actions/reports'
-import { getLowStockItems } from '@/actions/lowStock'
-
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
-
-// Helper to get tenant
-const getTenant = async () => {
-  const headersList = await headers()
-  const payload = await getPayload({ config: configPromise })
-
-  // Simplification: In a real app we'd resolve tenant from host or cookie properly.
-  // For now, let's assume we are testing and might need to fetch the first active tenant
-  // OR we rely on the implementation assuming this page is protected and we can extract user tenant.
-
-  // BUT since this is a Server Component, getting the User's tenant is tricky if we use standard Payload Auth
-  // without passing requests.
-  // Let's use a "Hardcoded" or "First Found" approach for the MVP demo if Auth isn't fully wired to Server Components.
-  // BETTER: Check currentUser.
-
-  const { user } = await payload.auth({ headers: headersList })
-  if (user?.tenant) return typeof user.tenant === 'string' ? user.tenant : user.tenant.id
-  return null
-}
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
+import { Loader2 } from 'lucide-react'
 
 const StatCard = ({
   title,
@@ -46,15 +26,31 @@ const StatCard = ({
   </div>
 )
 
-export default async function AnalyticsPage() {
-  const tenantId = await getTenant()
+export default function AnalyticsPage() {
+  const tenant = useQuery(api.tenants.getMine)
+  const stats = useQuery(api.orders.getStats, tenant ? { tenantId: tenant._id } : 'skip')
+  const lowStockItems = useQuery(
+    api.products.getLowStock,
+    tenant ? { tenantId: tenant._id } : 'skip',
+  )
 
-  if (!tenantId) {
-    return <div className="p-8">Please log in to view analytics.</div>
+  if (!stats || !lowStockItems) {
+    return (
+      <div className="flex justify-center p-8">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
   }
 
-  const stats = await getDashboardStats({ tenantId })
-  const lowStockItems = await getLowStockItems({ tenantId })
+  // Calculate specific analytics metrics not directly in getStats if needed,
+  // or rely on getStats. getStats returns { totalRevenue, totalOrders, activeOrders }.
+  // "Inventory Value" is missing from getStats. We might need to fetch products to calculate it
+  // or update getStats. For now, we'll placeholder or calculate if we fetch products.
+
+  // Actually, getLowStockItems returns products. We can't calculate total inventory value from just low stock.
+  // We'll skip Inventory Value or add a query for it later. For now, let's use 0 or hide it.
+
+  const inventoryValue = 0 // distinct query needed, expensive to scan all products just for this maybe?
 
   return (
     <div className="p-8 bg-gray-50 min-h-screen">
@@ -63,8 +59,8 @@ export default async function AnalyticsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard title="Total Revenue" value={stats.totalRevenue} prefix="PKR " />
         <StatCard title="Total Orders" value={stats.totalOrders} />
-        <StatCard title="Inventory Value" value={stats.inventoryValue} prefix="PKR " />
-        <StatCard title="Low Stock Alerts" value={stats.lowStockCount} />
+        <StatCard title="Active Orders" value={stats.activeOrders} />
+        <StatCard title="Low Stock Alerts" value={lowStockItems.length} />
       </div>
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
@@ -84,11 +80,11 @@ export default async function AnalyticsPage() {
             <tbody className="divide-y divide-gray-100">
               {lowStockItems.length > 0 ? (
                 lowStockItems.map((item: any) => (
-                  <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={item._id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 font-medium text-gray-900">{item.name}</td>
                     <td className="px-6 py-4 text-red-600 font-bold">{item.stock}</td>
                     <td className="px-6 py-4 text-gray-500 capitalize">
-                      {item.type?.replace('_', ' ')}
+                      {item.type?.replace('_', ' ') || 'N/A'}
                     </td>
                     <td className="px-6 py-4">
                       <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">

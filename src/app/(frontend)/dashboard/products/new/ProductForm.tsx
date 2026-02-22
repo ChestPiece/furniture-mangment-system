@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Loader2 } from 'lucide-react'
-import { toast } from 'sonner' // Assuming sonner is used based on package.json
+import { toast } from 'sonner'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '../../../../../../convex/_generated/api'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -41,11 +43,11 @@ type ProductFormValues = z.infer<typeof productSchema>
 
 export default function ProductForm() {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const createProduct = useMutation(api.products.create)
+  const tenant = useQuery(api.tenants.getMine)
+  const [isPending, setIsPending] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const form: any = useForm<ProductFormValues>({
-    // @ts-expect-error - Mismatch between Zod schema output and RHF resolver types
+  const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: '',
@@ -57,30 +59,33 @@ export default function ProductForm() {
     },
   })
 
-  const onSubmit: SubmitHandler<ProductFormValues> = async (data) => {
-    setIsSubmitting(true)
+  async function onSubmit(data: ProductFormValues) {
+    if (!tenant) {
+      toast.error('Tenant not loaded')
+      return
+    }
+
+    setIsPending(true)
     try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      await createProduct({
+        tenantId: tenant._id,
+        name: data.name,
+        sku: data.sku || `SKU-${Date.now()}`, // simple generation
+        price: data.price,
+        cost: data.cost,
+        stock: 0,
+        lowStockThreshold: 10, // default
+        type: data.type,
+        unit: data.unit,
       })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.errors?.[0]?.message || 'Failed to create product')
-      }
-
       toast.success('Product created successfully')
       router.push('/dashboard/products')
       router.refresh()
     } catch (error) {
-      console.error('Error creating product:', error)
-      toast.error(error instanceof Error ? error.message : 'Something went wrong')
+      toast.error('Failed to create product')
+      console.error(error)
     } finally {
-      setIsSubmitting(false)
+      setIsPending(false)
     }
   }
 
@@ -95,7 +100,7 @@ export default function ProductForm() {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
@@ -104,7 +109,7 @@ export default function ProductForm() {
                   <FormItem>
                     <FormLabel>Product Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Office Chair" {...field} />
+                      <Input placeholder="e.g. Office Chair" autoComplete="off" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -118,7 +123,7 @@ export default function ProductForm() {
                   <FormItem>
                     <FormLabel>SKU (Stock Keeping Unit)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. CHAIR-001" {...field} />
+                      <Input placeholder="e.g. CHAIR-001" autoComplete="off" {...field} />
                     </FormControl>
                     <FormDescription>
                       Optional. Will be auto-generated if left blank.
@@ -134,7 +139,7 @@ export default function ProductForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Product Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} name="type">
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a type" />
@@ -158,7 +163,7 @@ export default function ProductForm() {
                   <FormItem>
                     <FormLabel>Unit of Measure</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. pcs, kg, m" {...field} />
+                      <Input placeholder="e.g. pcs, kg, m" autoComplete="off" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -172,7 +177,14 @@ export default function ProductForm() {
                   <FormItem>
                     <FormLabel>Selling Price</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription>The price you sell this item for.</FormDescription>
                     <FormMessage />
@@ -187,7 +199,14 @@ export default function ProductForm() {
                   <FormItem>
                     <FormLabel>Cost Price</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" min="0" {...field} />
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        inputMode="decimal"
+                        autoComplete="off"
+                        {...field}
+                      />
                     </FormControl>
                     <FormDescription>The cost to acquire or produce this item.</FormDescription>
                     <FormMessage />
@@ -201,12 +220,12 @@ export default function ProductForm() {
                 type="button"
                 variant="outline"
                 onClick={() => router.back()}
-                disabled={isSubmitting}
+                disabled={isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" disabled={isPending}>
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Create Product
               </Button>
             </div>

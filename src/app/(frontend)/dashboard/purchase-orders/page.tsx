@@ -1,39 +1,19 @@
-import Link from 'next/link'
-import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
-import { PlusCircle, ShoppingCart } from 'lucide-react'
+'use client'
 
+import React from 'react'
+import Link from 'next/link'
+import { PlusCircle, ShoppingCart, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ErrorState } from '@/components/ui/ErrorState'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
-export default async function PurchaseOrdersPage() {
-  const payload = await getPayload({ config: configPromise })
-  const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
-
-  if (!user || !user.tenant) {
-    return (
-      <ErrorState
-        title="Unauthorized Access"
-        message="You must be logged in and associated with a shop to view purchase orders."
-        actionLabel="Return to Dashboard"
-        actionUrl="/dashboard"
-      />
-    )
-  }
-
-  const { docs: purchaseOrders } = await payload.find({
-    collection: 'purchase-orders',
-    where: {
-      tenant: {
-        equals: user.tenant,
-      },
-    },
-    sort: '-createdAt',
-  })
+export default function PurchaseOrdersPage() {
+  const tenant = useQuery(api.tenants.getMine)
+  const purchaseOrders = useQuery(
+    api.procurement.listPOs,
+    tenant ? { tenantId: tenant._id } : 'skip',
+  )
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -46,6 +26,14 @@ export default async function PurchaseOrdersPage() {
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-100/80'
     }
+  }
+
+  if (purchaseOrders === undefined) {
+    return (
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -102,25 +90,21 @@ export default async function PurchaseOrdersPage() {
               <tbody className="[&_tr:last-child]:border-0">
                 {purchaseOrders.map((po: any) => (
                   <tr
-                    key={po.id}
+                    key={po._id}
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
-                    <td className="p-4 align-middle font-medium">#{po.id.slice(-6)}</td>
-                    <td className="p-4 align-middle">
-                      {typeof po.supplier === 'object' ? po.supplier.name : po.supplier}
-                    </td>
+                    <td className="p-4 align-middle font-medium">#{po.poNumber}</td>
+                    <td className="p-4 align-middle">{po.supplierName}</td>
                     <td className="p-4 align-middle">
                       <Badge variant="outline" className={getStatusColor(po.status)}>
                         {po.status.charAt(0).toUpperCase() + po.status.slice(1)}
                       </Badge>
                     </td>
                     <td className="p-4 align-middle font-medium">
-                      ${po.totalCost?.toFixed(2) || '0.00'}
+                      ${po.totalAmount?.toFixed(2) || '0.00'}
                     </td>
                     <td className="p-4 align-middle text-muted-foreground">
-                      {po.expectedDeliveryDate
-                        ? new Date(po.expectedDeliveryDate).toLocaleDateString()
-                        : '-'}
+                      {new Date(po._creationTime).toLocaleDateString()}
                     </td>
                   </tr>
                 ))}

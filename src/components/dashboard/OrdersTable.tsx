@@ -30,7 +30,7 @@ import { toast } from 'sonner'
 // Checked package.json earlier, didn't see sonner. I'll use simple alert or just relies on revalidate.
 // user said "Reuse shadcn components". I'll assume basic interaction.
 
-interface Order {
+export interface Order {
   id: string
   orderDate: string
   customer?: { name: string } | string | null
@@ -40,6 +40,7 @@ interface Order {
   remainingPaid?: number
   tenant?: string | { id: string }
 }
+
 
 interface OrdersTableProps {
   orders: Order[]

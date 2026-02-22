@@ -1,38 +1,23 @@
-import Link from 'next/link'
+'use client'
+
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
-import { PlusCircle, Truck } from 'lucide-react'
-
+import Link from 'next/link'
+import { PlusCircle, Truck, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ErrorState } from '@/components/ui/ErrorState'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
-export default async function SuppliersPage() {
-  const payload = await getPayload({ config: configPromise })
-  const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
+export default function SuppliersPage() {
+  const tenant = useQuery(api.tenants.getMine)
+  const suppliers = useQuery(api.suppliers.list, tenant ? { tenantId: tenant._id } : 'skip')
 
-  if (!user || !user.tenant) {
+  if (suppliers === undefined) {
     return (
-      <ErrorState
-        title="Unauthorized Access"
-        message="You must be logged in and associated with a shop to view suppliers."
-        actionLabel="Return to Dashboard"
-        actionUrl="/dashboard"
-      />
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin" />
+      </div>
     )
   }
-
-  const { docs: suppliers } = await payload.find({
-    collection: 'suppliers',
-    where: {
-      tenant: {
-        equals: user.tenant,
-      },
-    },
-    sort: '-createdAt',
-  })
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -85,7 +70,7 @@ export default async function SuppliersPage() {
               <tbody className="[&_tr:last-child]:border-0">
                 {suppliers.map((supplier: any) => (
                   <tr
-                    key={supplier.id}
+                    key={supplier._id}
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
                     <td className="p-4 align-middle font-medium">{supplier.name}</td>

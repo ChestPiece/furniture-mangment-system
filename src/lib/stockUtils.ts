@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 
 /**
  * Recalculates the stock for a specific Product and sets the warehouseStock and total stock.
@@ -8,13 +8,14 @@ export const recalculateProductStock = async ({
   payload,
   productId,
   tenantId,
+  req,
 }: {
   payload: Payload
   productId: string
   tenantId: string
+  req?: PayloadRequest
 }) => {
   try {
-    // 1. Fetch all transactions for this product
     const transactions = await payload.find({
       collection: 'stock-transactions',
       where: {
@@ -31,8 +32,9 @@ export const recalculateProductStock = async ({
           },
         ],
       },
-      limit: 0, // Get all
+      limit: 0,
       pagination: false,
+      ...(req ? { req } : {}),
     })
 
     // 2. Aggregate per warehouse
@@ -54,7 +56,6 @@ export const recalculateProductStock = async ({
       quantity: qty,
     }))
 
-    // 4. Update Product
     await payload.update({
       collection: 'products',
       id: productId,
@@ -63,12 +64,12 @@ export const recalculateProductStock = async ({
         warehouseStock: warehouseStock,
       },
       context: {
-        skipStockUpdate: true, // prevent infinite loops if we had hooks on Product update
+        skipStockUpdate: true,
       },
+      ...(req ? { req } : {}),
     })
-
-    console.log(`Updated stock for Product ${productId}: Total ${totalStock}`)
   } catch (error) {
     console.error('Error recalculating stock:', error)
+    throw error
   }
 }

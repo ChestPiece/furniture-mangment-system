@@ -22,10 +22,7 @@ export const extractTenantId = (
 /**
  * Check if a user belongs to a specific tenant
  */
-export const belongsToTenant = (
-  user: TenantUser | null,
-  tenantId: string | undefined,
-): boolean => {
+export const belongsToTenant = (user: TenantUser | null, tenantId: string | undefined): boolean => {
   if (!user || !tenantId) return false
   const userTenantId = extractTenantId(user.tenant)
   return userTenantId === tenantId
@@ -41,18 +38,4 @@ export const requireTenantId = (user: TenantUser | null): string => {
     throw new Error('Tenant is required for this operation')
   }
   return tenantId
-}
-
-/**
- * Create a tenant query filter for Payload
- */
-export const createTenantQuery = (
-  tenantId: string | undefined,
-): Record<string, unknown> | null => {
-  if (!tenantId) return null
-  return {
-    tenant: {
-      equals: tenantId,
-    },
-  }
 }

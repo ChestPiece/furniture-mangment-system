@@ -1,4 +1,4 @@
-import { Payload } from 'payload'
+import type { Payload, PayloadRequest } from 'payload'
 
 /**
  * Marks a Purchase Order as received and creates corresponding StockTransactions (purchase_receive).
@@ -8,57 +8,55 @@ export const receivePurchaseOrder = async ({
   payload,
   purchaseOrderId,
   tenantId,
+  req,
 }: {
   payload: Payload
   purchaseOrderId: string
   tenantId: string
+  req?: PayloadRequest
 }) => {
   try {
-    // 1. Fetch PO
     const po = await payload.findByID({
       collection: 'purchase-orders',
       id: purchaseOrderId,
-      depth: 1, // Need details to check if product is valid
+      depth: 1,
+      ...(req ? { req } : {}),
     })
 
     if (!po) throw new Error('Purchase Order not found')
     if (po.status === 'received') throw new Error('Purchase Order already received')
 
-    // 2. Iterate Items and Create Transactions
+    // Resolve target warehouse ONCE outside the loop to avoid N+1 queries
+    let targetWarehouseId: string | undefined
+
+    const warehouses = await payload.find({
+      collection: 'warehouses',
+      where: {
+        and: [{ tenant: { equals: tenantId } }, { isDefault: { equals: true } }],
+      },
+      limit: 1,
+      ...(req ? { req } : {}),
+    })
+
+    targetWarehouseId = warehouses.docs[0]?.id
+
+    if (!targetWarehouseId) {
+      const anyWarehouse = await payload.find({
+        collection: 'warehouses',
+        where: { tenant: { equals: tenantId } },
+        limit: 1,
+        ...(req ? { req } : {}),
+      })
+      targetWarehouseId = anyWarehouse.docs[0]?.id
+    }
+
+    if (!targetWarehouseId) {
+      throw new Error('No warehouse found to receive stock into.')
+    }
+
     if (po.items) {
       for (const item of po.items) {
         const productId = typeof item.product === 'string' ? item.product : item.product.id
-
-        // Get Product to find a warehouse?
-        // Or should PO specify warehouse? Ideally PO specifies warehouse.
-        // For now, let's look up the "Default" warehouse for the tenant again?
-        // Or look up if the product has a preferred warehouse.
-        // Simplification: Fetch tenant default warehouse.
-
-        // Note: In a real app we'd query for the default warehouse once outside the loop.
-        const warehouses = await payload.find({
-          collection: 'warehouses',
-          where: {
-            and: [{ tenant: { equals: tenantId } }, { isDefault: { equals: true } }],
-          },
-          limit: 1,
-        })
-
-        let targetWarehouseId = warehouses.docs[0]?.id
-
-        if (!targetWarehouseId) {
-          // Fallback: any warehouse
-          const anyWarehouse = await payload.find({
-            collection: 'warehouses',
-            where: { tenant: { equals: tenantId } },
-            limit: 1,
-          })
-          targetWarehouseId = anyWarehouse.docs[0]?.id
-        }
-
-        if (!targetWarehouseId) {
-          throw new Error('No warehouse found to receive stock into.')
-        }
 
         await payload.create({
           collection: 'stock-transactions',
@@ -72,17 +70,18 @@ export const receivePurchaseOrder = async ({
             tenant: tenantId,
             date: new Date().toISOString(),
           },
+          ...(req ? { req } : {}),
         })
       }
     }
 
-    // 3. Update PO Status
     await payload.update({
       collection: 'purchase-orders',
       id: purchaseOrderId,
       data: {
         status: 'received',
       },
+      ...(req ? { req } : {}),
     })
 
     return { success: true }

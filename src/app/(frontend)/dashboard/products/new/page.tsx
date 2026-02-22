@@ -1,29 +1,18 @@
+'use client'
+
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import Link from 'next/link'
 import { ChevronLeft } from 'lucide-react'
-
 import { Button } from '@/components/ui/button'
 import ProductForm from './ProductForm'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../../convex/_generated/api'
 
-export default async function NewProductPage() {
-  const payload = await getPayload({ config: configPromise })
-  const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
+export default function NewProductPage() {
+  const viewer = useQuery(api.users.viewer)
 
-  if (!user || !user.tenant) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <h3 className="text-lg font-medium">Unauthorized Access</h3>
-        <p className="text-muted-foreground mb-4">You must be logged in to create products.</p>
-        <Button asChild>
-          <Link href="/login">Login</Link>
-        </Button>
-      </div>
-    )
-  }
+  // Optional: Redirect if not logged in.
+  // Ideally this is handled by a layout wrapper.
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">

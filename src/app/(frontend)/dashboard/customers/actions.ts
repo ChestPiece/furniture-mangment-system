@@ -31,6 +31,8 @@ export async function deleteCustomer(id: string) {
           },
         ],
       },
+      overrideAccess: false,
+      user,
     })
     revalidatePath('/dashboard/customers')
     return { success: true }
@@ -67,6 +69,8 @@ export async function updateCustomer(id: string, data: any) {
           },
         ],
       },
+      overrideAccess: false,
+      user,
     })
     revalidatePath(`/dashboard/customers/${id}`)
     revalidatePath('/dashboard/customers')

@@ -1,48 +1,26 @@
+'use client'
+
 import Link from 'next/link'
 import React from 'react'
-import { getPayload } from 'payload'
-import configPromise from '@payload-config'
-import { headers } from 'next/headers'
 import { Button } from '@/components/ui/button'
-import { Factory, PlusCircle } from 'lucide-react'
-import { ErrorState } from '@/components/ui/ErrorState'
-import { Pagination } from '@/components/ui/Pagination'
+import { Factory, PlusCircle, Loader2 } from 'lucide-react'
+import { useQuery } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
 
-export default async function ProductionPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
-}) {
-  const payload = await getPayload({ config: configPromise })
-  const headersList = await headers()
-  const { user } = await payload.auth({ headers: headersList })
+export default function ProductionPage() {
+  const tenant = useQuery(api.tenants.getMine)
+  const runs = useQuery(
+    api.procurement.listProductionRuns,
+    tenant ? { tenantId: tenant._id } : 'skip',
+  )
 
-  if (!user || !user.tenant) {
+  if (runs === undefined) {
     return (
-      <ErrorState
-        title="Unauthorized Access"
-        message="You must be logged in and associated with a shop to view production runs."
-        actionLabel="Return to Dashboard"
-        actionUrl="/dashboard"
-      />
+      <div className="flex justify-center p-12">
+        <Loader2 className="animate-spin" />
+      </div>
     )
   }
-
-  const resolvedParams = await searchParams
-  const page = typeof resolvedParams.page === 'string' ? Number(resolvedParams.page) : 1
-
-  const { docs: runs, totalPages } = await payload.find({
-    collection: 'production-runs',
-    where: {
-      tenant: {
-        equals: user.tenant,
-      },
-    },
-    sort: '-createdAt',
-    depth: 1,
-    limit: 10,
-    page,
-  })
 
   return (
     <div className="space-y-6">
@@ -89,12 +67,12 @@ export default async function ProductionPage({
               <tbody className="[&_tr:last-child]:border-0">
                 {runs.map((run: any) => (
                   <tr
-                    key={run.id}
+                    key={run._id}
                     className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                   >
-                    <td className="p-4 align-middle font-medium">#{run.id.substring(0, 8)}</td>
+                    <td className="p-4 align-middle font-medium">#{run._id.substring(0, 8)}</td>
                     <td className="p-4 align-middle">
-                      {new Date(run.createdAt).toLocaleDateString()}
+                      {new Date(run._creationTime).toLocaleDateString()}
                     </td>
                     <td className="p-4 align-middle capitalize">{run.status || 'Pending'}</td>
                   </tr>
@@ -104,8 +82,6 @@ export default async function ProductionPage({
           </div>
         )}
       </div>
-
-      <Pagination totalPages={totalPages} />
     </div>
   )
 }

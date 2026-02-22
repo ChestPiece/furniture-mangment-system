@@ -37,7 +37,7 @@ export function DeleteConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overscroll-contain">
         <DialogHeader>
           <div className="mx-auto bg-red-100 h-12 w-12 rounded-full flex items-center justify-center mb-4">
             <Trash2 className="h-6 w-6 text-red-600" />

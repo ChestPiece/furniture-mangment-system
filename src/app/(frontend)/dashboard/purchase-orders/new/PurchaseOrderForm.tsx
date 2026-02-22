@@ -70,10 +70,8 @@ export default function PurchaseOrderForm({ suppliers, products }: Props) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const form: any = useForm<PurchaseOrderFormValues>({
-    // @ts-expect-error - Mismatch between Zod schema output and RHF resolver types
-    resolver: zodResolver(purchaseOrderSchema),
+  const form = useForm<PurchaseOrderFormValues>({
+    resolver: zodResolver(purchaseOrderSchema) as never,
     defaultValues: {
       supplier: '',
       status: 'draft',
@@ -130,7 +128,7 @@ export default function PurchaseOrderForm({ suppliers, products }: Props) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit as any)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
